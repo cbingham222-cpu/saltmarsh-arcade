@@ -77,6 +77,8 @@ Game ↔ API contract (already implemented on both sides):
 | 5:00 | 626 | 141 | 0.22 s | 330 |
 | 7:00 | 691 | 131 | 0.19 s | 380 |
 
+Ship's stores (power-ups) and squalls (stages) were added at Chris's request; their knobs (`POWERS`, `POWER_GAP`, `SQUALL_SECS`, `CALM_SECS`) sit just below `HIT_WORDS`. Speed, spawn and fog curves are unchanged.
+
 Ship sits at y=540 on a 640-tall field. Knobs live near the top of the script in `index.html`: `diff` (first ramp), `squeeze` (second ramp), the `g.spd` line, the `g.fogY` line, and the `g.nextRow` line. McNalty's perk scales both ramps by 1.25.
 
 ## Known limits (tell Chris if they bite)
