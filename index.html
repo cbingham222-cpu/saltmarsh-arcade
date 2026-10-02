@@ -97,6 +97,19 @@ input{
   border:1px solid var(--line); border-radius:0;
 }
 .status{ margin:0; min-height:1.2em; font-size:.9em; color:var(--dim); }
+.row .primary{ flex:1; }
+.hint a{ color:var(--lantern); }
+
+.guide{ display:flex; flex-direction:column; gap:.55em; }
+.guide h3{ margin:.3em 0 0; font:italic 400 1.15em/1.1 var(--display); color:var(--lantern); }
+.guide p{ margin:0; font-size:.95em; line-height:1.3; }
+.guide p b{ font-weight:700; }
+.guide em{ font-family:var(--display); font-style:italic; }
+.item{ display:grid; grid-template-columns:3.4em 1fr; gap:.6em; align-items:center; }
+.item canvas{ width:3.4em; height:3.4em; background:#0b2428; border:1px solid var(--line); }
+ul.perks{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.35em; }
+ul.perks li{ border-left:.3em solid; padding-left:.5em; font-size:.92em; line-height:1.25; }
+ul.perks li span{ color:var(--dim); }
 
 #hud{ position:absolute; inset:0; pointer-events:none; padding:3.5% 5%; display:flex; justify-content:space-between; align-items:flex-start; }
 #hud[hidden]{ display:none; }
@@ -127,12 +140,36 @@ input{
       <p class="lede">Sail the <em>Weatherlight</em> into the storm. Dodge the crown, hoard the mithril, read the lightning.</p>
       <div class="helms" id="helms" role="radiogroup" aria-label="Choose a helmsman"></div>
       <p class="perk" id="perkLine"></p>
-      <button class="primary" id="startBtn">Hoist sail</button>
+      <div class="row"><button class="primary" id="startBtn">Hoist sail</button><button class="quiet" id="howBtn">How to sail</button></div>
       <div class="board">
         <div class="boardHead"><span id="boardTitle">Best on this device</span><button id="boardToggle" hidden>Show the fleet</button></div>
         <ol id="boardList"></ol>
       </div>
-      <p class="hint">Tap left or right of the ship to change lanes; arrow keys on a keyboard. Rocks, crown cutters and sahuagin cost hull. Hornpipe tokens build your combo. The fog thickens, so watch for the lightning.</p>
+      <p class="hint">Tap left or right of the ship to change lanes. Also in the arcade: <a href="dive.html">Crabber's Cove Dive</a></p>
+    </section>
+
+    <section id="howto" class="screen" hidden aria-labelledby="howTitle">
+      <p class="kicker">Ship's articles</p>
+      <h2 id="howTitle">How to sail</h2>
+      <div class="guide">
+        <h3>At the helm</h3>
+        <p>Tap left or right of the ship to slide one lane that way. On a keyboard, use the arrow keys or A and D. Esc or P pauses, and the game pauses itself if you switch apps.</p>
+        <p>The <em>Weatherlight</em> has three hull points, shown top right. Each hit costs one, then the ship blinks for a moment and can't be hit again. Lose all three and the run is over.</p>
+        <h3>In the water</h3>
+        <div class="item"><canvas data-icon="rock"></canvas><p><b>Rocks.</b> They sit still in their lane. Sometimes two lanes are blocked at once, but there's always a lane you can reach in time.</p></div>
+        <div class="item"><canvas data-icon="cutter"></canvas><p><b>Crown cutters.</b> From about 25 seconds in. Each starts in one lane and swings into the next partway down, so watch both lanes.</p></div>
+        <div class="item"><canvas data-icon="sahu"></canvas><p><b>Sahuagin.</b> From about a minute in. A green ripple marks where one will surface, then it surges at you faster than the current.</p></div>
+        <div class="item"><canvas data-icon="token"></canvas><p><b>Hornpipe tokens.</b> Mithril, worth 50 points times your combo. They often come in lines of three, and they never hurt.</p></div>
+        <h3>Combo</h3>
+        <p>Every two tokens raise your combo by one, up to &times;8 (shown under your score). Any hit drops it back to &times;1.</p>
+        <h3>The storm</h3>
+        <p>Fog rolls down from the top and thickens as the run goes on, hiding what's coming. The lightning keeps a rhythm: three small flickers, then a big strike that lights the whole sea for a moment. Learn the beat and read the water on the big one.</p>
+        <p>The sea speeds up for the first three minutes or so, then keeps creeping faster until something gives.</p>
+        <h3>Scoring</h3>
+        <p>30 points for every league sailed, plus tokens. Pick a helmsman on the title screen; each has one perk.</p>
+        <ul class="perks" id="howPerks"></ul>
+      </div>
+      <button class="primary" id="howBack">Back to harbour</button>
     </section>
 
     <section id="pause" class="screen" hidden>
@@ -205,7 +242,8 @@ const store = loadStore();
 if (!Array.isArray(store.scores)) store.scores = [];
 
 // ---------- canvas sizing ----------
-const canvas = $('game'), ctx = canvas.getContext('2d'), frame = $('frame'), stage = $('stage');
+const canvas = $('game'), frame = $('frame'), stage = $('stage');
+let ctx = canvas.getContext('2d');   // swapped briefly to draw the how-to icons
 let scale = 1;
 function resize(){
   const bw = stage.clientWidth || W, bh = stage.clientHeight || H;
@@ -222,7 +260,7 @@ window.addEventListener('resize', resize);
 resize();
 
 // ---------- state ----------
-let state = 'title';           // title | run | pause | over
+let state = 'title';           // title | howto | run | pause | over
 let helmIdx = Math.max(0, HELMS.findIndex(h => h.id === store.helm));
 let G = null;
 let fleetCache = null, boardMode = 'local';
@@ -492,7 +530,7 @@ function updateHud(g){
   }
 }
 function showScreen(id){
-  for (const s of ['title', 'pause', 'over']) $(s).hidden = s !== id;
+  for (const s of ['title', 'howto', 'pause', 'over']) $(s).hidden = s !== id;
   hud.hidden = !(id === null && state === 'run');
 }
 
@@ -536,6 +574,28 @@ async function loadFleet(){
     fleetCache = await r.json(); boardMode = 'fleet'; renderBoard();
   } catch { fleetCache = null; boardMode = 'local'; renderBoard(); }
 }
+
+// ---------- how to sail ----------
+const ICONS = { rock:[0.6, 4], cutter:[0.5, 15], sahu:[1.05, 7], token:[1.6, 0] };   // scale, y offset
+function drawIcons(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2), main = ctx;
+  for (const cv of document.querySelectorAll('canvas[data-icon]')){
+    const kind = cv.dataset.icon, [s, dy] = ICONS[kind], px = cv.clientWidth || 54;
+    cv.width = cv.height = Math.round(px * dpr);
+    ctx = cv.getContext('2d');
+    const k = cv.width / 64;
+    ctx.setTransform(k, 0, 0, k, 0, 0); ctx.clearRect(0, 0, 64, 64);
+    ctx.translate(32, 32 + dy); ctx.scale(s, s);
+    drawEnt({ kind, x:0, y:0, seed:0.37, r:0.6, warn:0 });
+  }
+  ctx = main;
+}
+function openHow(){
+  state = 'howto';
+  $('howPerks').innerHTML = HELMS.map(h => `<li style="border-color:${h.color}">${esc(h.name)} <span>(${esc(h.sub)})</span><br>${h.perk}</li>`).join('');
+  showScreen('howto'); $('howto').scrollTop = 0; drawIcons();
+}
+function closeHow(){ state = 'title'; showScreen('title'); }
 
 // ---------- flow ----------
 function start(){
@@ -599,6 +659,8 @@ window.addEventListener('keydown', ev => {
     else if (k === 'Escape' || k === 'p' || k === 'P') pause();
   } else if (state === 'pause'){
     if (k === 'Escape' || k === 'p' || k === 'P' || k === ' ' || k === 'Enter') resume();
+  } else if (state === 'howto'){
+    if (k === 'Escape'){ ev.preventDefault(); closeHow(); }
   } else if (state === 'title'){
     if ((k === ' ' || k === 'Enter') && tag !== 'BUTTON'){ ev.preventDefault(); start(); }
   } else if (state === 'over'){
@@ -609,6 +671,8 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) pause
 window.addEventListener('blur', pause);
 
 $('startBtn').addEventListener('click', start);
+$('howBtn').addEventListener('click', openHow);
+$('howBack').addEventListener('click', closeHow);
 $('resumeBtn').addEventListener('click', resume);
 $('abandonBtn').addEventListener('click', toHarbour);
 $('postBtn').addEventListener('click', saveScore);
@@ -621,7 +685,7 @@ let last = 0;
 function loop(ts){
   const dt = Math.min(0.05, last ? (ts - last) / 1000 : 0); last = ts;
   if (state === 'run' && G && !G.over){ update(G, dt); updateHud(G); }
-  render(state === 'title' ? null : G, ts);
+  render(state === 'title' || state === 'howto' ? null : G, ts);
   requestAnimationFrame(loop);
 }
 toHarbour();

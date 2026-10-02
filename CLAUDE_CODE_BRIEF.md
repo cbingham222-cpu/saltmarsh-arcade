@@ -94,4 +94,4 @@ Chris's chosen second game. Concept locked at design level, not yet built:
 - Posts to the same Worker with `?game=crabbers-cove-dive`. The Worker already knows the display name.
 - Build it as `dive.html` in this repo. Link the two games from each other's title screens once both exist.
 
-Wait for Chris to say go on Phase 5; he may want to playtest Weatherlight Run for a week first.
+Status: first playable build of `dive.html` is in, linked both ways with Weatherlight Run, and each game has a How to page. Tuning knobs for the dive (breath, descent/ascent speed, hit costs, loot values, depth bonus) sit together near the top of its script; they're a first pass and need a playtest.
