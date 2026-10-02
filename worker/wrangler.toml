@@ -6,11 +6,11 @@ compatibility_date = "2026-09-01"
 # then paste the returned id below.
 [[kv_namespaces]]
 binding = "SCORES"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "c01bd8d56bfe4eaab5153648c4da4488"
 
 [vars]
 # Lock CORS to the GitHub Pages origin once it exists, e.g. "https://<github-user>.github.io"
-ALLOWED_ORIGIN = "*"
+ALLOWED_ORIGIN = "https://cbingham222-cpu.github.io"
 
 # Optional Discord webhook (set as a secret, never in this file):
 #   npx wrangler secret put DISCORD_WEBHOOK
