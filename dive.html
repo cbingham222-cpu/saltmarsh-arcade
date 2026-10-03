@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="color-scheme" content="dark">
+<title>Crabber's Cove Dive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Barlow+Condensed:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --sea:#071a1c; --sea-deep:#04110f; --fog:#9fb3b5; --lantern:#f2b544;
+  --crown:#b8352f; --fin:#3fb27f; --mithril:#d9e4e8; --wood:#6b4a2b;
+  --ink:#e9efe9; --dim:#8da3a5; --line:rgba(159,179,181,.28);
+  --display:'IM Fell English','Iowan Old Style','Palatino Linotype',Georgia,serif;
+  --ui:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --ink:#e9efe9; } }
+:root[data-theme="dark"]{ --ink:#e9efe9; }
+html{ scroll-padding-top:env(safe-area-inset-top,0px); }
+html,body{ height:100%; margin:0; }
+body{
+  background:var(--sea); color:var(--ink); font-family:var(--ui);
+  overflow:hidden; touch-action:none; -webkit-user-select:none; user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+#stage{ position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+#frame{ position:relative; font-size:16px; }
+canvas{ display:block; touch-action:none; background:var(--sea); }
+
+.screen{
+  position:absolute; inset:0; display:flex; flex-direction:column; gap:.6em;
+  padding:7% 7% 5%; overflow:auto;
+  background:linear-gradient(180deg, rgba(4,17,15,.80), rgba(4,17,15,.93));
+}
+.screen[hidden]{ display:none; }
+.kicker{ margin:0; font:italic 400 1em/1.2 var(--display); color:var(--dim); }
+h1{ margin:0; font:400 2.5em/1 var(--display); letter-spacing:-.01em; }
+h2{ margin:0; font:400 2em/1 var(--display); }
+.lede{ margin:0; font:500 1em/1.3 var(--ui); color:var(--ink); max-width:22em; }
+.lede em{ font-family:var(--display); font-style:italic; }
+
+.helms{ display:grid; grid-template-columns:repeat(3,1fr); gap:.4em; margin-top:.3em; }
+.helm{
+  appearance:none; border:1px solid var(--line); background:rgba(255,255,255,.035); color:var(--ink);
+  text-align:left; padding:.45em .5em; border-left:.3em solid transparent; cursor:pointer; font-family:var(--ui);
+}
+.helm b{ display:block; font-weight:700; font-size:.95em; line-height:1.1; }
+.helm span{ display:block; color:var(--dim); font-size:.78em; line-height:1.2; }
+.helm[aria-checked="true"]{ background:rgba(255,255,255,.08); border-color:var(--line); }
+.helm:focus-visible, button:focus-visible, input:focus-visible, a:focus-visible{ outline:2px solid var(--lantern); outline-offset:2px; }
+.perk{ margin:0; min-height:2.4em; font-size:.9em; line-height:1.2; color:var(--dim); }
+.perk b{ color:var(--ink); font-weight:700; }
+
+button.primary{
+  appearance:none; border:0; background:var(--lantern); color:#1a1200;
+  font:700 1.15em/1 var(--ui); padding:.65em 1em; cursor:pointer;
+}
+button.primary:disabled{ opacity:.5; cursor:default; }
+button.quiet{
+  appearance:none; border:1px solid var(--line); background:transparent; color:var(--ink);
+  font:500 1em/1 var(--ui); padding:.55em .9em; cursor:pointer;
+}
+.row{ display:flex; gap:.5em; align-items:center; }
+.row .primary{ flex:1; }
+
+.board{ flex:1; min-height:5.5em; display:flex; flex-direction:column; border-top:1px solid var(--line); padding-top:.5em; }
+.boardHead{ display:flex; justify-content:space-between; align-items:baseline; gap:.5em; }
+.boardHead span{ font:italic 400 1em/1 var(--display); color:var(--dim); }
+.boardHead button{ appearance:none; border:0; background:none; color:var(--lantern); font:500 .9em/1 var(--ui); cursor:pointer; padding:0; }
+ol{ list-style:none; margin:.3em 0 0; padding:0; overflow:auto; }
+ol li{
+  display:grid; grid-template-columns:1.5em 1fr auto 4.2em; gap:.5em; align-items:baseline;
+  padding:.22em 0; font-size:.95em; border-bottom:1px dotted rgba(159,179,181,.14);
+}
+ol li .rk{ color:var(--dim); }
+ol li .nm{ font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+ol li .hm{ color:var(--dim); font-size:.85em; }
+ol li .sc{ text-align:right; font-variant-numeric:tabular-nums; }
+ol li.empty{ display:block; color:var(--dim); border:0; }
+.hint{ margin:0; font-size:.85em; color:var(--dim); line-height:1.25; }
+.hint a{ color:var(--lantern); }
+
+.scoreBig{ display:flex; align-items:baseline; gap:.4em; margin:.1em 0; }
+.scoreBig #overScore{ font:700 3.4em/1 var(--ui); font-variant-numeric:tabular-nums; }
+.scoreBig .lbl{ font:italic 400 1.1em/1 var(--display); color:var(--dim); }
+dl.stats{ display:grid; grid-template-columns:auto 1fr; gap:.15em .8em; margin:0; font-size:.95em; }
+dl.stats dt{ color:var(--dim); }
+dl.stats dd{ margin:0; font-weight:700; font-variant-numeric:tabular-nums; }
+.best{ margin:0; color:var(--lantern); font:italic 400 1.05em/1.2 var(--display); min-height:1.2em; }
+label{ display:block; font-size:.9em; color:var(--dim); }
+input{
+  width:100%; box-sizing:border-box; margin-top:.25em; padding:.5em .6em;
+  font:700 1.1em/1 var(--ui); color:var(--ink); background:rgba(255,255,255,.06);
+  border:1px solid var(--line); border-radius:0;
+}
+.status{ margin:0; min-height:1.2em; font-size:.9em; color:var(--dim); }
+
+.guide{ display:flex; flex-direction:column; gap:.55em; }
+.guide h3{ margin:.3em 0 0; font:italic 400 1.15em/1.1 var(--display); color:var(--lantern); }
+.guide p{ margin:0; font-size:.95em; line-height:1.3; }
+.guide p b{ font-weight:700; }
+.item{ display:grid; grid-template-columns:3.4em 1fr; gap:.6em; align-items:center; }
+.item canvas{ width:3.4em; height:3.4em; background:#0b2428; border:1px solid var(--line); }
+ul.perks{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.35em; }
+ul.perks li{ border-left:.3em solid; padding-left:.5em; font-size:.92em; line-height:1.25; }
+ul.perks li span{ color:var(--dim); }
+
+#hud{ position:absolute; inset:0; pointer-events:none; padding:3.5% 5%; display:flex; justify-content:space-between; align-items:flex-start; }
+#hud[hidden]{ display:none; }
+#hudScore{ font:700 2.1em/1 var(--ui); font-variant-numeric:tabular-nums; text-shadow:0 1px 6px rgba(0,0,0,.6); }
+#hudLbl{ font:italic 400 .9em/1.2 var(--display); color:var(--dim); }
+#hudCombo{ font:700 1.05em/1.2 var(--ui); color:var(--lantern); min-height:1.2em; }
+.hudR{ text-align:right; display:flex; flex-direction:column; align-items:flex-end; gap:.3em; }
+.air{ display:flex; align-items:center; gap:.4em; font:italic 400 .9em/1 var(--display); color:var(--dim); }
+#hudAir{ position:relative; width:7.5em; height:.75em; border:1px solid var(--line); background:rgba(0,0,0,.4); }
+#hudAirFill{ position:absolute; left:0; top:0; bottom:0; width:100%; background:var(--mithril); }
+#hudAirFill.warn{ background:var(--lantern); }
+#hudAirFill.low{ background:#ff6b5c; }
+#hudAirNeed{ position:absolute; top:-.3em; bottom:-.3em; width:2px; margin-left:-1px; background:var(--lantern); box-shadow:0 0 4px rgba(0,0,0,.8); }
+#hudDepth{ font:500 .95em/1.4 var(--ui); color:var(--dim); font-variant-numeric:tabular-nums; }
+#surfBtn{
+  position:absolute; left:50%; bottom:4%; transform:translateX(-50%); pointer-events:auto;
+  font-size:1em; padding:.6em 1.1em; box-shadow:0 2px 10px rgba(0,0,0,.5);
+}
+#surfBtn:disabled{ opacity:.75; }
+
+@media (prefers-reduced-motion: reduce){ .screen{ transition:none; } }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="frame">
+    <canvas id="game" width="360" height="640" aria-label="Crabber's Cove Dive, a push-your-luck diving game"></canvas>
+
+    <div id="hud" hidden>
+      <div class="hudL"><div id="hudScore">0</div><div id="hudLbl">gold carried</div><div id="hudCombo"></div></div>
+      <div class="hudR">
+        <div class="air">breath<div id="hudAir"><div id="hudAirFill"></div><div id="hudAirNeed"></div></div></div>
+        <div id="hudDepth">0 fathoms</div>
+      </div>
+      <button class="primary" id="surfBtn" type="button">Surface &#9650;</button>
+    </div>
+
+    <section id="title" class="screen" aria-labelledby="gameTitle">
+      <p class="kicker">A Saltmarsh arcade</p>
+      <h1 id="gameTitle">Crabber's Cove Dive</h1>
+      <p class="lede">One breath, one dive. The deeper the cove, the richer the wrecks, but you only keep what you <em>surface</em> with.</p>
+      <div class="helms" id="helms" role="radiogroup" aria-label="Choose a diver"></div>
+      <p class="perk" id="perkLine"></p>
+      <div class="row"><button class="primary" id="startBtn">Take a breath</button><button class="quiet" id="howBtn">How to dive</button></div>
+      <div class="board">
+        <div class="boardHead"><span id="boardTitle">Best on this device</span><button id="boardToggle" hidden>Show the fleet</button></div>
+        <ol id="boardList"></ol>
+      </div>
+      <p class="hint">Tap left or right of the diver to change lanes. Also in the arcade: <a href="./">Weatherlight Run</a></p>
+    </section>
+
+    <section id="howto" class="screen" hidden aria-labelledby="howTitle">
+      <p class="kicker">The crabbers' rules</p>
+      <h2 id="howTitle">How to dive</h2>
+      <div class="guide">
+        <h3>One breath</h3>
+        <p>You start beside the skiff and sink head-first into the cove. Tap left or right of the diver to slide one lane that way (arrow keys or A and D on a keyboard). Esc or P pauses.</p>
+        <p>When you've got enough, tap <b>Surface</b> (or press &uarr;, W or Space) to turn around and kick for the air. There's no going back down. The way up passes the same rocks and nets you dodged on the way down, and the sahuagin follow you up.</p>
+        <h3>Breath</h3>
+        <p>The bar top right drains every second, and faster the deeper you are. The gold tick on it is the breath you need to swim straight up from here without a hit. The bar turns gold when you're cutting it close and red when you won't make it without an air bubble. Run out and you drown, and everything you were carrying stays in the cove.</p>
+        <h3>In the cove</h3>
+        <div class="item"><canvas data-icon="rock"></canvas><p><b>Rocks.</b> They sit still. Hitting one costs 6 seconds of breath.</p></div>
+        <div class="item"><canvas data-icon="net"></canvas><p><b>Crab nets.</b> From 12 fathoms down. They sway between two lanes, snag you for a moment and cost 3 seconds of breath.</p></div>
+        <div class="item"><canvas data-icon="sahu"></canvas><p><b>Sahuagin.</b> From 30 fathoms down. A green ripple shows where one lurks, then it darts at you. Getting caught steals 30% of the gold you carry and 3 seconds of breath.</p></div>
+        <h3>Loot</h3>
+        <div class="item"><canvas data-icon="coin"></canvas><p><b>Coins.</b> 10 gold each, often in lines of three.</p></div>
+        <div class="item"><canvas data-icon="pearl"></canvas><p><b>Pearls.</b> Below 20 fathoms. 40 gold.</p></div>
+        <div class="item"><canvas data-icon="chest"></canvas><p><b>Chests.</b> Below 50 fathoms, and rare. 150 gold.</p></div>
+        <div class="item"><canvas data-icon="bubble"></canvas><p><b>Air bubbles.</b> 8 seconds of breath back.</p></div>
+        <p>Loot is worth more the deeper you find it: double at 25 fathoms, triple at 50, five times at 100. Every two pieces in a row raise your combo by one, up to &times;8, and any hit drops it back to &times;1.</p>
+        <h3>The dark</h3>
+        <p>Your lantern reaches less far the deeper you go. Pearls and chests glint in the dark, and you can always see a sahuagin's ripple.</p>
+        <h3>Scoring</h3>
+        <p>Surface to bank everything you're carrying, plus 10 gold for every fathom of your deepest point. Drown and you bank nothing.</p>
+        <ul class="perks" id="howPerks"></ul>
+      </div>
+      <button class="primary" id="howBack">Back to the skiff</button>
+    </section>
+
+    <section id="pause" class="screen" hidden>
+      <p class="kicker">Holding your breath.</p>
+      <h2>Paused</h2>
+      <div class="row"><button class="primary" id="resumeBtn">Resume</button><button class="quiet" id="abandonBtn">Abandon dive</button></div>
+    </section>
+
+    <section id="over" class="screen" hidden>
+      <p class="kicker" id="overKicker">The cove keeps it.</p>
+      <div class="scoreBig"><span id="overScore">0</span><span class="lbl">gold banked</span></div>
+      <dl class="stats">
+        <dt id="overCarryLbl">Carried up</dt><dd id="overCarry"></dd>
+        <dt>Depth bonus</dt><dd id="overBonus"></dd>
+        <dt>Deepest</dt><dd id="overDeep"></dd>
+        <dt>Best combo</dt><dd id="overCombo"></dd>
+        <dt>Diver</dt><dd id="overHelm"></dd>
+      </dl>
+      <p class="best" id="overBest"></p>
+      <label>Your name on the board<input id="nameIn" maxlength="12" autocomplete="off" spellcheck="false" placeholder="Wren"></label>
+      <button class="primary" id="postBtn">Save score</button>
+      <p class="status" id="postStatus"></p>
+      <div class="row"><button class="quiet" id="againBtn">Dive again</button><button class="quiet" id="menuBtn">Back to the skiff</button></div>
+    </section>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+// ---------- config ----------
+const LEADERBOARD_URL = 'https://saltmarsh-arcade.cbingham222.workers.dev';
+const GAME_ID = 'crabbers-cove-dive';
+const STORE = 'ccd.v1';
+
+const W = 360, H = 640;
+const LANES = [60, 180, 300];
+const FATHOM = 60;                        // px of cove per fathom
+const DIVE_Y = 200, RISE_Y = 450;         // diver's screen y going down / coming up
+
+// tuning knobs (first pass, untested at the table)
+const AIR = 75;                           // seconds of breath at the surface
+const DOWN_MIN = 130, DOWN_MAX = 260;     // descent px/s, surface → 90 fathoms
+const UP_SPD = 290;                       // ascent px/s
+const PRESSURE = 150;                     // breath drains 1/s at the surface, +1/s per this many fathoms
+const COST = { rock:6, net:3, sahu:3 };   // seconds of breath per hit
+const STEAL = 0.3;                        // share of carried gold a sahuagin takes
+const BUBBLE_AIR = 8;
+const LOOT = { coin:10, pearl:40, chest:150 };
+const DEPTH_BONUS = 10;                   // gold per fathom of max depth, on surfacing
+const depthMult = f => 1 + f / 25;        // loot value by depth: ×2 at 25 fathoms, ×5 at 100
+
+const HELMS = [
+  { id:'caspian',   name:'Caspian Dreadtide',     sub:"Parker's wizard",   color:'#8fa6ff', perk:'<b>Arcane ward.</b> The first hit of the dive is absorbed.' },
+  { id:'vaelor',    name:'Vaelor Borean',         sub:"Joe's sorcerer",    color:'#ff9a5c', perk:'<b>Draconic greed.</b> Loot is worth 25% more.' },
+  { id:'davy',      name:'Davy Jones',            sub:"Hales's druid",     color:'#5cc8ff', perk:'<b>Seal shape.</b> Breath lasts 20% longer.' },
+  { id:'wren',      name:'Wren Pike',             sub:"Nick's rogue",      color:'#c25cff', perk:'<b>Evasion.</b> A slimmer silhouette slips through tighter gaps.' },
+  { id:'mcnalty',   name:'Midknight McNalty',     sub:"Jesse's ranger",    color:'#9ad36b', perk:'<b>Strong kick.</b> Ascends 25% faster; loot is worth 10% less.' },
+  { id:'gilgamesh', name:'Gilgamesh Atlas Orion', sub:"Chandler's bard",   color:'#ffd35c', perk:'<b>Inspiration.</b> Combo climbs twice as fast.' },
+];
+const LOCKER = {
+  davy:"The sea keeps what's owed, Davy.", gilgamesh:"The last note was a bubble.", mcnalty:"Punishment served, fathoms down.",
+  wren:"Light fingers, heavy lungs.", caspian:"No spell for breathing.", vaelor:"Greed, meet the deep."
+};
+const SURFACED = ['Air, and gold to show for it.', 'Sunlight. Count it twice.', 'The cove lets you go.', 'Gasping, and richer.'];
+const ROCK_WORDS = ['Barnacles!', 'Struck the rocks', 'Ow!'];
+
+// ---------- helpers ----------
+const $ = id => document.getElementById(id);
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const helmOf = id => HELMS.find(h => h.id === id);
+const helmShort = id => { const h = helmOf(id); return h ? h.name.split(' ')[0] : '—'; };
+const fmt = n => Math.floor(n).toLocaleString();
+const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+const mix = (a, b, k) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * k)).join(',')})`;
+const fath = px => px / FATHOM;
+
+// ---------- storage (per device) ----------
+function loadStore(){ try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch { return {}; } }
+function saveStore(){ try { localStorage.setItem(STORE, JSON.stringify(store)); } catch {} }
+const store = loadStore();
+if (!Array.isArray(store.scores)) store.scores = [];
+if (!store.name){ try { const w = JSON.parse(localStorage.getItem('wlr.v1')); if (w && w.name) store.name = w.name; } catch {} }
+if (!store.helm){ try { const w = JSON.parse(localStorage.getItem('wlr.v1')); if (w && w.helm) store.helm = w.helm; } catch {} }
+
+// ---------- canvas sizing ----------
+const canvas = $('game'), frame = $('frame'), stage = $('stage');
+let ctx = canvas.getContext('2d');   // swapped briefly to draw the how-to icons
+let scale = 1;
+function resize(){
+  const bw = stage.clientWidth || W, bh = stage.clientHeight || H;
+  scale = Math.max(0.1, Math.min(bw / W, bh / H));
+  const cw = Math.floor(W * scale), ch = Math.floor(H * scale);
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.floor(cw * dpr); canvas.height = Math.floor(ch * dpr);
+  canvas.style.width = cw + 'px'; canvas.style.height = ch + 'px';
+  frame.style.width = cw + 'px'; frame.style.height = ch + 'px';
+  frame.style.fontSize = (16 * scale) + 'px';
+  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ---------- state ----------
+let state = 'title';           // title | howto | run | pause | over
+let helmIdx = Math.max(0, HELMS.findIndex(h => h.id === store.helm));
+let G = null;
+let fleetCache = null, boardMode = 'local';
+
+function newRun(){
+  const helm = HELMS[helmIdx];
+  const air = AIR * (helm.id === 'davy' ? 1.2 : 1);
+  return {
+    helm, lane:1, x:LANES[1], depth:0, maxDepth:0, dir:1, spd:DOWN_MIN, air, airMax:air,
+    gold:0, loot:0, chain:0, combo:1, bestCombo:1, score:0, t:0, ents:[], pops:[],
+    nextRow:4 * FATHOM, lastSafe:[0,1,2], inv:0, snag:0, ward: helm.id === 'caspian',
+    shake:0, camY:DIVE_Y, sahuT:1.5, hint:3.5, over:false, saved:false, surfaced:false
+  };
+}
+const dd = depth => Math.min(1, fath(depth) / 90);
+const upSpd = g => UP_SPD * (g.helm.id === 'mcnalty' ? 1.25 : 1);
+const drain = depth => 1 + fath(depth) / PRESSURE;
+// breath it takes to swim straight up from here with no hits
+const airNeeded = g => g.depth / upSpd(g) * drain(g.depth / 2);
+const PICKUPS = new Set(['coin', 'pearl', 'chest', 'bubble']);
+
+// ---------- spawning ----------
+// The cove is one persistent column: rows are laid down on the way down and are still there on the way up.
+function addEnt(g, h, wy){
+  const e = { kind:h.kind, lane:h.lane, x:LANES[h.lane], wy, dead:false };
+  if (h.kind === 'rock')   { e.w = 70; e.h = 56; e.seed = Math.random(); }
+  if (h.kind === 'net')    { e.w = 62; e.h = 38; e.a = h.lane; e.b = h.toLane; e.ph = rand(0, 6.28); e.sp = rand(0.7, 1.1); }
+  if (h.kind === 'sahu')   { e.w = 34; e.h = 40; e.mode = 'lurk'; e.warn = 0.55; e.vdir = 0; e.v = 0; }
+  if (h.kind === 'coin')   { e.w = 26; e.h = 26; e.r = Math.random() * 6.28; }
+  if (h.kind === 'pearl')  { e.w = 28; e.h = 26; }
+  if (h.kind === 'chest')  { e.w = 42; e.h = 32; }
+  if (h.kind === 'bubble') { e.w = 30; e.h = 30; e.r = Math.random() * 6.28; }
+  g.ents.push(e);
+  return e;
+}
+function spawnRow(g, wy){
+  const f = fath(wy), d = dd(wy);
+  const pTwo = 0.12 + 0.45 * d;
+  const pNet = f > 12 ? 0.2 + 0.15 * d : 0;
+  const pSahu = f > 30 ? 0.15 + 0.2 * d : 0;
+  for (let k = 0; k < 8; k++){
+    const haz = [], occupied = new Set();
+    const lanes = [0, 1, 2].sort(() => Math.random() - 0.5);
+    if (Math.random() < pNet){
+      const a = lanes[0], b = a === 1 ? pick([0, 2]) : 1;
+      haz.push({ kind:'net', lane:a, toLane:b }); occupied.add(a); occupied.add(b);
+    } else {
+      const n = Math.random() < pTwo ? 2 : 1;
+      for (let i = 0; i < n; i++){ haz.push({ kind: Math.random() < pSahu ? 'sahu' : 'rock', lane:lanes[i] }); occupied.add(lanes[i]); }
+    }
+    const safe = [0, 1, 2].filter(l => !occupied.has(l));
+    if (!safe.length) continue;
+    if (!safe.some(s => g.lastSafe.some(p => Math.abs(p - s) <= 1))) continue;   // always a reachable lane
+    for (const h of haz) addEnt(g, h, wy);
+    const r = Math.random(), tl = pick(safe);
+    if (r < 0.07) addEnt(g, { kind:'bubble', lane:tl }, wy);
+    else if (r < 0.65){
+      if (f > 50 && Math.random() < 0.08) addEnt(g, { kind:'chest', lane:tl }, wy);
+      else if (f > 20 && Math.random() < 0.22) addEnt(g, { kind:'pearl', lane:tl }, wy);
+      else {
+        addEnt(g, { kind:'coin', lane:tl }, wy);
+        if (Math.random() < 0.35){ addEnt(g, { kind:'coin', lane:tl }, wy + 45); addEnt(g, { kind:'coin', lane:tl }, wy + 90); }
+      }
+    }
+    g.lastSafe = safe;
+    return;
+  }
+  const l = pick([0, 1, 2]);                      // fallback: one rock, always passable
+  addEnt(g, { kind:'rock', lane:l }, wy);
+  g.lastSafe = [0, 1, 2].filter(x => x !== l);
+}
+
+// ---------- update ----------
+function pop(g, text, color){ g.pops.push({ text, x:g.x, y:g.camY - 56, color, t:1.1 }); }
+function collect(g, e){
+  if (e.kind === 'bubble'){
+    g.air = Math.min(g.airMax, g.air + BUBBLE_AIR);
+    pop(g, '+' + BUBBLE_AIR + 's breath', '#9fdcff');
+    return;
+  }
+  g.loot++;
+  g.chain += g.helm.id === 'gilgamesh' ? 2 : 1;
+  g.combo = Math.min(8, 1 + Math.floor(g.chain / 2));
+  g.bestCombo = Math.max(g.bestCombo, g.combo);
+  const perk = g.helm.id === 'vaelor' ? 1.25 : g.helm.id === 'mcnalty' ? 0.9 : 1;
+  const v = Math.round(LOOT[e.kind] * depthMult(fath(e.wy)) * g.combo * perk);
+  g.gold += v;
+  pop(g, '+' + fmt(v) + (g.combo > 1 ? '  ×' + g.combo : ''), e.kind === 'coin' ? '#f2d58a' : '#fff3d6');
+}
+function hit(g, e){
+  if (g.ward){ g.ward = false; g.inv = 1.2; pop(g, 'Ward holds', '#8fa6ff'); return; }
+  g.chain = 0; g.combo = 1; g.inv = 1.4; g.shake = 0.35;
+  g.air -= COST[e.kind];
+  if (e.kind === 'net'){ g.snag = 0.7; pop(g, 'Snagged!  −' + COST.net + 's', '#ff6b5c'); }
+  else if (e.kind === 'sahu'){
+    const s = Math.floor(g.gold * STEAL); g.gold -= s;
+    pop(g, s ? 'Robbed! −' + fmt(s) + ' gold' : 'Sahuagin!  −' + COST.sahu + 's', '#ff6b5c');
+  } else pop(g, pick(ROCK_WORDS) + '  −' + COST.rock + 's', '#ff6b5c');
+}
+function surface(){
+  const g = G;
+  if (!g || state !== 'run' || g.dir !== 1 || g.depth < 2 * FATHOM) return;
+  g.dir = -1; g.sahuT = rand(0.8, 1.6);
+  pop(g, 'Kick for the surface!', '#e9efe9');
+}
+function update(g, dt){
+  g.t += dt;
+  g.inv = Math.max(0, g.inv - dt); g.shake = Math.max(0, g.shake - dt);
+  g.hint = Math.max(0, g.hint - dt); g.snag = Math.max(0, g.snag - dt);
+
+  if (g.dir === 1){
+    g.spd = DOWN_MIN + (DOWN_MAX - DOWN_MIN) * dd(g.depth);
+    if (g.snag <= 0) g.depth += g.spd * dt;
+    g.maxDepth = Math.max(g.maxDepth, g.depth);
+    while (g.nextRow < g.depth + (H - DIVE_Y) + 120){
+      spawnRow(g, g.nextRow);
+      g.nextRow += 240 - 80 * dd(g.nextRow);       // row gap 240 → 160 px
+    }
+  } else {
+    g.spd = upSpd(g);
+    if (g.snag <= 0) g.depth = Math.max(0, g.depth - g.spd * dt);
+    g.sahuT -= dt;
+    if (g.sahuT <= 0 && g.depth > RISE_Y + 3 * FATHOM){   // sahuagin give chase on the way up
+      g.sahuT = rand(1.4, 2.8);
+      addEnt(g, { kind:'sahu', lane:pick([0, 1, 2]) }, g.depth - RISE_Y - 60);
+    }
+  }
+  g.camY += ((g.dir === 1 ? DIVE_Y : RISE_Y) - g.camY) * Math.min(1, dt * 2.5);
+  g.x += (LANES[g.lane] - g.x) * Math.min(1, dt * 18);
+
+  const dw = g.helm.id === 'wren' ? 20 : 30, dh = 46;
+  const reach = g.dir === 1 ? H - DIVE_Y - 30 : RISE_Y - 20;   // how far ahead a sahuagin wakes
+  for (const e of g.ents){
+    const ahead = (e.wy - g.depth) * g.dir;        // > 0: in front of the diver
+    if (e.kind === 'sahu'){
+      if (e.mode === 'lurk'){
+        if (ahead > 0 && ahead < reach){ e.mode = 'warn'; e.vdir = -g.dir; }
+        else if (ahead < -300) e.dead = true;
+        continue;
+      }
+      if (e.mode === 'warn'){
+        e.warn -= dt;
+        if (e.warn <= 0){ e.mode = 'surge'; e.v = Math.max(110, g.spd * 0.4); }
+        continue;
+      }
+      e.wy += e.vdir * e.v * dt;
+      if ((e.wy - g.depth) * e.vdir > 300) e.dead = true;
+    }
+    if (e.kind === 'net') e.x = LANES[e.a] + (LANES[e.b] - LANES[e.a]) * (1 - Math.cos(g.t * e.sp + e.ph)) / 2;
+    if (e.r !== undefined) e.r += dt * 4;
+    if (Math.abs(e.x - g.x) < (e.w + dw) / 2 && Math.abs(e.wy - g.depth) < (e.h + dh) / 2){
+      if (PICKUPS.has(e.kind)){ e.dead = true; collect(g, e); }
+      else if (g.inv <= 0) hit(g, e);
+    }
+  }
+  g.ents = g.ents.filter(e => !e.dead);
+  for (const p of g.pops){ p.t -= dt; p.y -= 34 * dt; }
+  g.pops = g.pops.filter(p => p.t > 0);
+
+  g.air -= dt * drain(g.depth);
+  if (g.air <= 0){ g.air = 0; endRun(g, false); return; }
+  if (g.dir === -1 && g.depth <= 0) endRun(g, true);
+}
+
+// ---------- render ----------
+function drawCove(depth, camY, tint){
+  const k = Math.min(1, fath(tint) / 80);
+  const gr = ctx.createLinearGradient(0, 0, 0, H);
+  gr.addColorStop(0, mix([16, 52, 56], [4, 14, 15], k)); gr.addColorStop(1, mix([9, 34, 37], [1, 6, 6], k));
+  ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
+
+  const sy = camY - depth;                        // screen y of the waterline
+  if (k < 0.5){                                   // sun shafts near the top
+    ctx.fillStyle = `rgba(217,228,232,${0.05 * (1 - 2 * k)})`;
+    for (let i = 0; i < 3; i++){
+      const x0 = 60 + i * 110 + Math.sin(depth * 0.004 + i) * 20, top = Math.max(0, sy);
+      ctx.beginPath(); ctx.moveTo(x0, top); ctx.lineTo(x0 + 30, top); ctx.lineTo(x0 + 90, H); ctx.lineTo(x0 + 20, H); ctx.closePath(); ctx.fill();
+    }
+  }
+  // marine snow
+  ctx.fillStyle = 'rgba(217,228,232,.22)';
+  for (let j = 0; j < 26; j++){
+    const x = hash(j) * W, y = (((hash(j + 50) * H * 2 - depth * 0.6) % H) + H) % H;
+    ctx.fillRect(x, y, 1.6, 1.6);
+  }
+  // cove walls
+  ctx.fillStyle = '#152426'; ctx.strokeStyle = '#2c4143'; ctx.lineWidth = 1.5;
+  const seg = 40, first = Math.floor((depth - camY) / seg) - 1;
+  for (const side of [0, 1]){
+    ctx.beginPath();
+    let started = false;
+    for (let s = first; s * seg - depth + camY < H + seg; s++){
+      if (s < 0) continue;
+      const y = s * seg - depth + camY, wv = 8 + hash(s * 3 + side * 101) * 16;
+      const x = side ? W - wv : wv;
+      if (!started){ ctx.moveTo(side ? W : 0, y); started = true; }
+      ctx.lineTo(x, y);
+    }
+    if (started){ ctx.lineTo(side ? W : 0, H + seg); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+  }
+  // the surface and the skiff
+  if (sy > -60){
+    ctx.fillStyle = '#0b1d20'; ctx.fillRect(0, 0, W, Math.max(0, sy));
+    ctx.strokeStyle = 'rgba(217,228,232,.55)'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let x = 0; x <= W; x += 10) ctx.lineTo(x, sy + Math.sin(x * 0.07 + depth * 0.01) * 2);
+    ctx.stroke();
+    ctx.fillStyle = '#6b4a2b'; ctx.strokeStyle = '#3b2817'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(110, sy - 6); ctx.lineTo(250, sy - 6); ctx.quadraticCurveTo(240, sy + 16, 200, sy + 18); ctx.lineTo(150, sy + 18); ctx.quadraticCurveTo(118, sy + 14, 110, sy - 6); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = 'rgba(185,173,146,.5)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(240, sy + 4); ctx.lineTo(244, sy + 220); ctx.stroke();   // crab line
+    ctx.fillStyle = '#f2b544'; ctx.beginPath(); ctx.arc(126, sy - 12, 3.5, 0, 6.283); ctx.fill();
+  }
+}
+function drawDiver(x, y, helm, dir, alpha, now){
+  ctx.save(); ctx.globalAlpha = alpha;
+  const gr = ctx.createRadialGradient(x, y, 4, x, y, 70);
+  gr.addColorStop(0, 'rgba(242,181,68,.35)'); gr.addColorStop(1, 'rgba(242,181,68,0)');
+  ctx.fillStyle = gr; ctx.fillRect(x - 70, y - 70, 140, 140);
+  ctx.translate(x, y);
+  if (dir === 1) ctx.rotate(Math.PI);             // head-first on the way down
+  const kick = Math.sin(now * 0.012) * 4;
+  ctx.strokeStyle = '#2b3f41'; ctx.lineWidth = 4; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-4, 10); ctx.lineTo(-6 + kick, 24); ctx.moveTo(4, 10); ctx.lineTo(6 - kick, 24); ctx.stroke();
+  ctx.fillStyle = '#1c2c2e';
+  ctx.beginPath(); ctx.ellipse(-6 + kick, 28, 4, 6, 0, 0, 6.283); ctx.ellipse(6 - kick, 28, 4, 6, 0, 0, 6.283); ctx.fill();
+  ctx.strokeStyle = '#6b4a2b'; ctx.lineWidth = 3.5;
+  ctx.beginPath(); ctx.moveTo(-8, -6); ctx.lineTo(-13, -18); ctx.moveTo(8, -6); ctx.lineTo(13, -18); ctx.stroke();
+  ctx.fillStyle = '#6b4a2b'; ctx.strokeStyle = '#3b2817'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(0, 1, 9, 13, 0, 0, 6.283); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = helm.color; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(-8, -5); ctx.lineTo(8, 6); ctx.stroke();
+  ctx.fillStyle = '#b08a3e'; ctx.strokeStyle = '#6e5420'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(0, -17, 7.5, 0, 6.283); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#14262a'; ctx.beginPath(); ctx.arc(0, -18, 4, 0, 6.283); ctx.fill();
+  ctx.fillStyle = '#f2b544'; ctx.beginPath(); ctx.arc(12, -20, 3, 0, 6.283); ctx.fill();
+  ctx.restore();
+  ctx.save(); ctx.globalAlpha = alpha * 0.6; ctx.strokeStyle = '#d9e4e8'; ctx.lineWidth = 1;   // breath bubbles rise
+  for (let i = 0; i < 3; i++){
+    const p = ((now * 0.04 + i * 15) % 45);
+    ctx.beginPath(); ctx.arc(x + Math.sin(now * 0.005 + i) * 3, y - dir * 20 - 10 - p, 1.5 + i * 0.6, 0, 6.283); ctx.stroke();
+  }
+  ctx.restore();
+}
+function drawEnt(e, y, now){
+  const x = e.x;
+  if (e.kind === 'rock'){
+    ctx.fillStyle = 'rgba(0,0,0,.25)';
+    ctx.beginPath(); ctx.ellipse(x, y + 8, 44, 30, 0, 0, 6.283); ctx.fill();
+    ctx.fillStyle = '#263536'; ctx.strokeStyle = '#4a6264'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i < 8; i++){
+      const a = i / 8 * 6.283, r = 24 + 10 * Math.sin(e.seed * 20 + i * 3.1);
+      const px = x + Math.cos(a) * r * 1.35, py = y + Math.sin(a) * r * 0.95;
+      i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+    }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#3fb27f'; ctx.globalAlpha = 0.5;   // a little weed
+    ctx.beginPath(); ctx.ellipse(x - 12, y - 14, 3, 9, 0.4, 0, 6.283); ctx.ellipse(x + 16, y - 10, 2.5, 7, -0.3, 0, 6.283); ctx.fill();
+    ctx.globalAlpha = 1;
+  } else if (e.kind === 'net'){
+    const hw = 31, hh = 19;
+    ctx.strokeStyle = 'rgba(185,173,146,.85)'; ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    for (let i = -hw; i < hw; i += 10){ ctx.moveTo(x + i, y - hh); ctx.lineTo(x + i + 10, y + hh); ctx.moveTo(x + i + 10, y - hh); ctx.lineTo(x + i, y + hh); }
+    ctx.stroke();
+    ctx.strokeStyle = '#b9ad92'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x - hw, y - hh); ctx.lineTo(x + hw, y - hh); ctx.moveTo(x - hw, y + hh); ctx.lineTo(x + hw, y + hh); ctx.stroke();
+    ctx.fillStyle = '#b8352f';
+    for (let i = -hw; i <= hw; i += 20){ ctx.beginPath(); ctx.arc(x + i, y - hh, 3.5, 0, 6.283); ctx.fill(); }
+  } else if (e.kind === 'sahu'){
+    if (e.mode !== 'surge') return;               // ripples are drawn over the dark
+    ctx.save(); ctx.translate(x, y); if (e.vdir > 0) ctx.rotate(Math.PI);   // faces the way it swims
+    ctx.fillStyle = 'rgba(63,178,127,.18)';
+    ctx.beginPath(); ctx.ellipse(0, 4, 22, 26, 0, 0, 6.283); ctx.fill();
+    ctx.fillStyle = '#3fb27f'; ctx.strokeStyle = '#1c6b48'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(-9, 18); ctx.lineTo(-4, 26); ctx.lineTo(0, 20); ctx.lineTo(4, 26); ctx.lineTo(9, 18); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(0, 2, 10, 17, 0, 0, 6.283); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-3, -12); ctx.quadraticCurveTo(0, -2, 0, 14); ctx.quadraticCurveTo(6, 0, 3, -12); ctx.closePath(); ctx.fillStyle = '#1c6b48'; ctx.fill();
+    ctx.fillStyle = '#f2d55c'; ctx.beginPath(); ctx.arc(-4, -10, 2, 0, 6.283); ctx.arc(4, -10, 2, 0, 6.283); ctx.fill();
+    ctx.restore();
+  } else if (e.kind === 'coin'){
+    ctx.save(); ctx.translate(x, y); ctx.scale(Math.abs(Math.cos(e.r)) * 0.65 + 0.35, 1);
+    ctx.fillStyle = '#f2b544'; ctx.strokeStyle = '#a87a1c'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 0, 12, 0, 6.283); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#c99626'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0, 0, 7, 0, 6.283); ctx.stroke();
+    ctx.restore();
+  } else if (e.kind === 'pearl'){
+    ctx.fillStyle = '#7d6a58'; ctx.strokeStyle = '#4a3d31'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x - 15, y + 4); ctx.quadraticCurveTo(x, y + 18, x + 15, y + 4); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#efe9e4'; ctx.strokeStyle = '#bfb3b8';
+    ctx.beginPath(); ctx.arc(x, y - 2, 8, 0, 6.283); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x - 3, y - 5, 2.2, 0, 6.283); ctx.fill();
+  } else if (e.kind === 'chest'){
+    ctx.fillStyle = '#6b4a2b'; ctx.strokeStyle = '#3b2817'; ctx.lineWidth = 2;
+    ctx.fillRect(x - 20, y - 8, 40, 22); ctx.strokeRect(x - 20, y - 8, 40, 22);
+    ctx.beginPath(); ctx.moveTo(x - 20, y - 8); ctx.quadraticCurveTo(x, y - 24, x + 20, y - 8); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#3b2817'; ctx.fillRect(x - 20, y - 2, 40, 4);
+    ctx.fillStyle = '#f2b544'; ctx.fillRect(x - 4, y - 5, 8, 9);
+  } else if (e.kind === 'bubble'){
+    const wob = Math.sin(e.r) * 1.5;
+    ctx.strokeStyle = '#9fdcff'; ctx.fillStyle = 'rgba(159,220,255,.16)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(x, y, 12 + wob, 12 - wob, 0, 0, 6.283); ctx.fill(); ctx.stroke();
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(x + 13, y - 10, 4, 0, 6.283); ctx.moveTo(x - 9, y - 15); ctx.arc(x - 12, y - 15, 3, 0, 6.283); ctx.stroke();
+    ctx.fillStyle = '#e9f7ff'; ctx.beginPath(); ctx.arc(x - 4, y - 4, 2.5, 0, 6.283); ctx.fill();
+  }
+}
+// drawn over the dark: sahuagin ripples always; pearls and chests glint
+function drawOver(e, y, now){
+  if (e.kind === 'sahu' && e.mode === 'warn'){
+    const k = 1 - e.warn / 0.55, sy = clamp(y, 16, H - 16);
+    ctx.strokeStyle = `rgba(63,178,127,${0.8 * (1 - k)})`; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(e.x, sy, 10 + 30 * k, 4 + 10 * k, 0, 0, 6.283); ctx.stroke();
+  } else if (e.kind === 'pearl' || e.kind === 'chest'){
+    const tw = 0.35 + 0.35 * Math.sin(now * 0.006 + e.wy);
+    ctx.strokeStyle = `rgba(255,243,214,${tw})`; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(e.x - 7, y - 10); ctx.lineTo(e.x + 7, y - 10); ctx.moveTo(e.x, y - 17); ctx.lineTo(e.x, y - 3); ctx.stroke();
+  }
+}
+function drawDark(g){
+  const k = Math.min(1, fath(g.depth) / 80);
+  const R = 620 - 390 * k;                         // lantern reach shrinks with depth
+  const gr = ctx.createRadialGradient(g.x, g.camY, R * 0.3, g.x, g.camY, R);
+  gr.addColorStop(0, 'rgba(1,6,6,0)'); gr.addColorStop(1, `rgba(1,6,6,${0.2 + 0.68 * k})`);
+  ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
+}
+function drawPops(g){
+  ctx.font = "700 20px 'Barlow Condensed', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center';
+  for (const p of g.pops){
+    ctx.globalAlpha = Math.min(1, p.t); ctx.fillStyle = p.color;
+    ctx.fillText(p.text, clamp(p.x, 70, 290), p.y);
+  }
+  ctx.globalAlpha = 1;
+}
+function drawHint(g){
+  ctx.save(); ctx.globalAlpha = Math.min(1, g.hint / 1.5) * 0.7; ctx.fillStyle = '#e9efe9';
+  ctx.font = "500 17px 'Barlow Condensed', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center';
+  ctx.fillText('◀ tap', 50, 560); ctx.fillText('tap ▶', 310, 560);
+  ctx.restore();
+}
+function render(g, now){
+  ctx.save();
+  ctx.clearRect(0, 0, W, H);
+  if (g && g.shake > 0){ const s = g.shake * 9; ctx.translate(rand(-s, s), rand(-s, s)); }
+  if (g){
+    drawCove(g.depth, g.camY, g.depth);
+    const vis = [];
+    for (const e of g.ents){
+      const y = e.wy - g.depth + g.camY;
+      if (y < -120 || y > H + 120) continue;
+      vis.push([e, y]); drawEnt(e, y, now);
+    }
+    const blink = g.inv > 0 ? (Math.sin(now * 0.04) > 0 ? 0.35 : 0.9) : 1;
+    drawDiver(g.x, g.camY, g.helm, g.dir, blink, now);
+    drawDark(g);
+    for (const [e, y] of vis) drawOver(e, y, now);
+    drawPops(g);
+    if (g.hint > 0) drawHint(g);
+  } else {
+    drawCove(now * 0.05, DIVE_Y, 12 * FATHOM);
+    drawDiver(180, 330 + Math.sin(now * 0.0015) * 4, HELMS[helmIdx], 1, 0.9, now);
+  }
+  ctx.restore();
+}
+
+// ---------- HUD + screens ----------
+const hud = $('hud'), hudScore = $('hudScore'), hudCombo = $('hudCombo'), hudDepth = $('hudDepth');
+const airFill = $('hudAirFill'), airNeed = $('hudAirNeed'), surfBtn = $('surfBtn');
+let lastDir = 0;
+function updateHud(g){
+  hudScore.textContent = fmt(g.gold);
+  hudCombo.textContent = g.combo > 1 ? '×' + g.combo + ' combo' : '';
+  hudDepth.textContent = Math.floor(fath(g.depth)) + ' fathoms';
+  const need = airNeeded(g);
+  airFill.style.width = (100 * g.air / g.airMax).toFixed(1) + '%';
+  airNeed.style.left = Math.min(100, 100 * need / g.airMax).toFixed(1) + '%';
+  airFill.classList.toggle('low', g.air < need);
+  airFill.classList.toggle('warn', g.air >= need && g.air < need * 1.3 + 4);
+  if (g.dir !== lastDir){
+    lastDir = g.dir;
+    surfBtn.disabled = g.dir !== 1;
+    surfBtn.innerHTML = g.dir === 1 ? 'Surface &#9650;' : 'Kicking up&hellip;';
+  }
+}
+function showScreen(id){
+  for (const s of ['title', 'howto', 'pause', 'over']) $(s).hidden = s !== id;
+  hud.hidden = !(id === null && state === 'run');
+}
+
+function renderHelms(){
+  const box = $('helms'); box.innerHTML = '';
+  HELMS.forEach((h, i) => {
+    const b = document.createElement('button');
+    b.className = 'helm'; b.type = 'button'; b.setAttribute('role', 'radio');
+    b.setAttribute('aria-checked', String(i === helmIdx));
+    b.style.borderLeftColor = i === helmIdx ? h.color : 'transparent';
+    b.innerHTML = `<b>${esc(h.name)}</b><span>${esc(h.sub)}</span>`;
+    b.addEventListener('click', () => { helmIdx = i; store.helm = h.id; saveStore(); renderHelms(); });
+    box.appendChild(b);
+  });
+  $('perkLine').innerHTML = HELMS[helmIdx].perk;
+}
+function renderBoard(){
+  const fleet = boardMode === 'fleet' && Array.isArray(fleetCache);
+  const list = fleet ? fleetCache : store.scores;
+  $('boardTitle').textContent = fleet ? 'The fleet' : 'Best on this device';
+  const tog = $('boardToggle');
+  tog.hidden = !LEADERBOARD_URL;
+  tog.textContent = fleet ? 'Show this device' : 'Show the fleet';
+  const ol = $('boardList'); ol.innerHTML = '';
+  if (!list.length){
+    const li = document.createElement('li'); li.className = 'empty';
+    li.textContent = fleet ? 'No fleet scores yet. Be the first on the board.' : 'No dives yet on this device. Take a breath.';
+    ol.appendChild(li); return;
+  }
+  list.slice(0, 10).forEach((e, i) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="rk">${i + 1}</span><span class="nm">${esc(e.name)}</span><span class="hm">${esc(helmShort(e.helm))}</span><span class="sc">${fmt(e.score)}</span>`;
+    ol.appendChild(li);
+  });
+}
+async function loadFleet(){
+  if (!LEADERBOARD_URL) return;
+  try {
+    const r = await fetch(`${LEADERBOARD_URL}?game=${GAME_ID}`, { cache:'no-store' });
+    if (!r.ok) throw new Error('bad status');
+    fleetCache = await r.json(); boardMode = 'fleet'; renderBoard();
+  } catch { fleetCache = null; boardMode = 'local'; renderBoard(); }
+}
+
+// ---------- how to dive ----------
+const ICONS = { rock:[0.6, 4], net:[0.85, 0], sahu:[0.95, 0], coin:[1.6, 0], pearl:[1.5, 2], chest:[1.1, 4], bubble:[1.3, 4] };   // scale, y offset
+function drawIcons(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2), main = ctx;
+  for (const cv of document.querySelectorAll('canvas[data-icon]')){
+    const kind = cv.dataset.icon, [s, dy] = ICONS[kind], px = cv.clientWidth || 54;
+    cv.width = cv.height = Math.round(px * dpr);
+    ctx = cv.getContext('2d');
+    const k = cv.width / 64;
+    ctx.setTransform(k, 0, 0, k, 0, 0); ctx.clearRect(0, 0, 64, 64);
+    ctx.translate(32, 32 + dy); ctx.scale(s, s);
+    drawEnt({ kind, x:0, wy:0, seed:0.37, r:0.6, a:1, b:1, mode:'surge', vdir:-1 }, 0, 0);
+  }
+  ctx = main;
+}
+function openHow(){
+  state = 'howto';
+  $('howPerks').innerHTML = HELMS.map(h => `<li style="border-color:${h.color}">${esc(h.name)} <span>(${esc(h.sub)})</span><br>${h.perk}</li>`).join('');
+  showScreen('howto'); $('howto').scrollTop = 0; drawIcons();
+}
+function closeHow(){ state = 'title'; showScreen('title'); }
+
+// ---------- flow ----------
+function start(){
+  G = newRun(); lastDir = 0; state = 'run';
+  showScreen(null); updateHud(G);
+}
+function pause(){ if (state !== 'run') return; state = 'pause'; showScreen('pause'); }
+function resume(){ if (state !== 'pause') return; state = 'run'; showScreen(null); }
+function toHarbour(){ G = null; state = 'title'; renderHelms(); renderBoard(); showScreen('title'); loadFleet(); }
+function endRun(g, surfaced){
+  g.over = true; g.surfaced = surfaced; state = 'over';
+  const deep = Math.floor(fath(g.maxDepth));
+  const bonus = surfaced ? deep * DEPTH_BONUS : 0;
+  g.score = surfaced ? Math.floor(g.gold) + bonus : 0;
+  const prevBest = store.scores.length ? store.scores[0].score : 0;
+  $('overKicker').textContent = surfaced ? pick(SURFACED) : (LOCKER[g.helm.id] || 'The cove keeps it.');
+  $('overScore').textContent = fmt(g.score);
+  $('overCarryLbl').textContent = surfaced ? 'Carried up' : 'Lost to the cove';
+  $('overCarry').textContent = fmt(g.gold);
+  $('overBonus').textContent = surfaced ? fmt(bonus) : '—';
+  $('overDeep').textContent = deep + ' fathoms';
+  $('overCombo').textContent = '×' + g.bestCombo;
+  $('overHelm').textContent = g.helm.name;
+  $('overBest').textContent = g.score > prevBest ? 'New best on this device.' : (prevBest ? 'Best on this device: ' + fmt(prevBest) : '');
+  $('nameIn').value = store.name || '';
+  const btn = $('postBtn');
+  btn.disabled = g.score <= 0;
+  btn.textContent = g.score <= 0 ? 'Nothing to bank' : LEADERBOARD_URL ? 'Post to the fleet' : 'Save score';
+  $('postStatus').textContent = g.score <= 0 ? 'Drowned with the gold. Surface next time.' : '';
+  showScreen('over');
+}
+async function saveScore(){
+  const g = G; if (!g || g.saved || g.score <= 0) return;
+  const name = $('nameIn').value.trim().slice(0, 12) || 'Nobody';
+  g.saved = true; store.name = name;
+  const entry = { game:GAME_ID, name, score:g.score, helm:g.helm.id, dist:Math.floor(fath(g.maxDepth)), tokens:g.loot, ts:Date.now() };
+  store.scores.push(entry); store.scores.sort((a, b) => b.score - a.score); store.scores = store.scores.slice(0, 10); saveStore();
+  const btn = $('postBtn'), st = $('postStatus');
+  btn.disabled = true;
+  if (!LEADERBOARD_URL){ st.textContent = 'Saved on this device.'; return; }
+  st.textContent = 'Sending to the fleet…';
+  try {
+    const r = await fetch(`${LEADERBOARD_URL}?game=${GAME_ID}`, { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(entry) });
+    if (!r.ok) throw new Error('bad status');
+    const j = await r.json();
+    if (Array.isArray(j.board)) fleetCache = j.board;
+    st.textContent = j.rank ? `Posted. You're #${j.rank} in the fleet.` : 'Posted to the fleet.';
+  } catch {
+    st.textContent = "Couldn't reach the fleet. Saved on this device.";
+  }
+}
+
+// ---------- input ----------
+const move = dir => { if (G && state === 'run' && G.snag <= 0) G.lane = clamp(G.lane + dir, 0, 2); };
+canvas.addEventListener('pointerdown', ev => {
+  if (state !== 'run') return;
+  const rect = canvas.getBoundingClientRect();
+  move((ev.clientX - rect.left) / rect.width < 0.5 ? -1 : 1);
+});
+window.addEventListener('keydown', ev => {
+  if (ev.repeat) return;
+  const k = ev.key, tag = (document.activeElement || {}).tagName;
+  if (state === 'run'){
+    if (k === 'ArrowLeft' || k === 'a' || k === 'A'){ ev.preventDefault(); move(-1); }
+    else if (k === 'ArrowRight' || k === 'd' || k === 'D'){ ev.preventDefault(); move(1); }
+    else if (k === 'ArrowUp' || k === 'w' || k === 'W' || k === ' '){ ev.preventDefault(); surface(); }
+    else if (k === 'Escape' || k === 'p' || k === 'P') pause();
+  } else if (state === 'pause'){
+    if (k === 'Escape' || k === 'p' || k === 'P' || k === ' ' || k === 'Enter') resume();
+  } else if (state === 'howto'){
+    if (k === 'Escape'){ ev.preventDefault(); closeHow(); }
+  } else if (state === 'title'){
+    if ((k === ' ' || k === 'Enter') && tag !== 'BUTTON' && tag !== 'A'){ ev.preventDefault(); start(); }
+  } else if (state === 'over'){
+    if (k === 'Enter' && tag === 'INPUT') saveScore();
+  }
+});
+document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+window.addEventListener('blur', pause);
+
+$('startBtn').addEventListener('click', start);
+$('howBtn').addEventListener('click', openHow);
+$('howBack').addEventListener('click', closeHow);
+surfBtn.addEventListener('click', surface);
+$('resumeBtn').addEventListener('click', resume);
+$('abandonBtn').addEventListener('click', toHarbour);
+$('postBtn').addEventListener('click', saveScore);
+$('againBtn').addEventListener('click', start);
+$('menuBtn').addEventListener('click', toHarbour);
+$('boardToggle').addEventListener('click', () => { boardMode = boardMode === 'fleet' ? 'local' : 'fleet'; renderBoard(); });
+
+// ---------- loop ----------
+let last = 0;
+function loop(ts){
+  const dt = Math.min(0.05, last ? (ts - last) / 1000 : 0); last = ts;
+  if (state === 'run' && G && !G.over){ update(G, dt); updateHud(G); }
+  render(state === 'title' || state === 'howto' ? null : G, ts);
+  requestAnimationFrame(loop);
+}
+toHarbour();
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

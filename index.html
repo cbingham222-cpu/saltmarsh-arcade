@@ -97,11 +97,25 @@ input{
   border:1px solid var(--line); border-radius:0;
 }
 .status{ margin:0; min-height:1.2em; font-size:.9em; color:var(--dim); }
+.row .primary{ flex:1; }
+.hint a{ color:var(--lantern); }
+
+.guide{ display:flex; flex-direction:column; gap:.55em; }
+.guide h3{ margin:.3em 0 0; font:italic 400 1.15em/1.1 var(--display); color:var(--lantern); }
+.guide p{ margin:0; font-size:.95em; line-height:1.3; }
+.guide p b{ font-weight:700; }
+.guide em{ font-family:var(--display); font-style:italic; }
+.item{ display:grid; grid-template-columns:3.4em 1fr; gap:.6em; align-items:center; }
+.item canvas{ width:3.4em; height:3.4em; background:#0b2428; border:1px solid var(--line); }
+ul.perks{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.35em; }
+ul.perks li{ border-left:.3em solid; padding-left:.5em; font-size:.92em; line-height:1.25; }
+ul.perks li span{ color:var(--dim); }
 
 #hud{ position:absolute; inset:0; pointer-events:none; padding:3.5% 5%; display:flex; justify-content:space-between; align-items:flex-start; }
 #hud[hidden]{ display:none; }
 #hudScore{ font:700 2.1em/1 var(--ui); font-variant-numeric:tabular-nums; text-shadow:0 1px 6px rgba(0,0,0,.6); }
 #hudCombo{ font:700 1.05em/1.2 var(--ui); color:var(--lantern); min-height:1.2em; }
+#hudPower{ font:700 .95em/1.2 var(--ui); min-height:1.2em; text-shadow:0 1px 6px rgba(0,0,0,.6); }
 .hudR{ text-align:right; }
 #hudHull{ font-size:1.3em; letter-spacing:.15em; line-height:1; text-shadow:0 1px 6px rgba(0,0,0,.6); }
 #hudHull i{ font-style:normal; color:var(--lantern); }
@@ -117,7 +131,7 @@ input{
     <canvas id="game" width="360" height="640" aria-label="Weatherlight Run, a lane-dodging sailing game"></canvas>
 
     <div id="hud" hidden>
-      <div class="hudL"><div id="hudScore">0</div><div id="hudCombo"></div></div>
+      <div class="hudL"><div id="hudScore">0</div><div id="hudCombo"></div><div id="hudPower"></div></div>
       <div class="hudR"><div id="hudHull"><i>&#9679;</i><i>&#9679;</i><i>&#9679;</i></div><div id="hudDist">0.0 leagues</div></div>
     </div>
 
@@ -127,12 +141,44 @@ input{
       <p class="lede">Sail the <em>Weatherlight</em> into the storm. Dodge the crown, hoard the mithril, read the lightning.</p>
       <div class="helms" id="helms" role="radiogroup" aria-label="Choose a helmsman"></div>
       <p class="perk" id="perkLine"></p>
-      <button class="primary" id="startBtn">Hoist sail</button>
+      <div class="row"><button class="primary" id="startBtn">Hoist sail</button><button class="quiet" id="howBtn">How to sail</button></div>
       <div class="board">
         <div class="boardHead"><span id="boardTitle">Best on this device</span><button id="boardToggle" hidden>Show the fleet</button></div>
         <ol id="boardList"></ol>
       </div>
-      <p class="hint">Tap left or right of the ship to change lanes; arrow keys on a keyboard. Rocks, crown cutters and sahuagin cost hull. Hornpipe tokens build your combo. The fog thickens, so watch for the lightning.</p>
+      <p class="hint">Tap left or right of the ship to change lanes. Also in the arcade: <a href="dive.html">Crabber's Cove Dive</a></p>
+    </section>
+
+    <section id="howto" class="screen" hidden aria-labelledby="howTitle">
+      <p class="kicker">Ship's articles</p>
+      <h2 id="howTitle">How to sail</h2>
+      <div class="guide">
+        <h3>At the helm</h3>
+        <p>Tap left or right of the ship to slide one lane that way. On a keyboard, use the arrow keys or A and D. Esc or P pauses, and the game pauses itself if you switch apps.</p>
+        <p>The <em>Weatherlight</em> has three hull points, shown top right. Each hit costs one, then the ship blinks for a moment and can't be hit again. Lose all three and the run is over.</p>
+        <h3>In the water</h3>
+        <div class="item"><canvas data-icon="rock"></canvas><p><b>Rocks.</b> They sit still in their lane. Sometimes two lanes are blocked at once, but there's always a lane you can reach in time.</p></div>
+        <div class="item"><canvas data-icon="cutter"></canvas><p><b>Crown cutters.</b> From about 25 seconds in. Each starts in one lane and swings into the next partway down, so watch both lanes.</p></div>
+        <div class="item"><canvas data-icon="sahu"></canvas><p><b>Sahuagin.</b> From about a minute in. A green ripple marks where one will surface, then it surges at you faster than the current.</p></div>
+        <div class="item"><canvas data-icon="token"></canvas><p><b>Hornpipe tokens.</b> Mithril, worth 50 points times your combo. They often come in lines of three, and they never hurt.</p></div>
+        <h3>Combo</h3>
+        <p>Every two tokens raise your combo by one, up to &times;8 (shown under your score). Any hit drops it back to &times;1.</p>
+        <h3>Ship's stores</h3>
+        <p>Every 20 seconds or so a glowing crate floats down an open lane. Sail through it to pick it up. Timed ones show a countdown under your combo.</p>
+        <div class="item"><canvas data-icon="power" data-p="patch"></canvas><p><b>Patch kit.</b> Restores one hull point. At full hull it's worth 250 points instead.</p></div>
+        <div class="item"><canvas data-icon="power" data-p="wind"></canvas><p><b>Fair wind.</b> Nothing can hurt you for 5 seconds.</p></div>
+        <div class="item"><canvas data-icon="power" data-p="lantern"></canvas><p><b>Storm lantern.</b> Burns the fog away for 8 seconds.</p></div>
+        <div class="item"><canvas data-icon="power" data-p="hornpipe"></canvas><p><b>Hornpipe.</b> Tokens are worth double for 10 seconds.</p></div>
+        <h3>Squalls</h3>
+        <p>Every 90 seconds you weather a squall. You get a reward (a hull point back if you're damaged, otherwise 1,000 points times the squall number), then a few seconds of calm water with a line of tokens before the next squall hits. The squall count shows next to your leagues.</p>
+        <h3>The storm</h3>
+        <p>Fog rolls down from the top and thickens as the run goes on, hiding what's coming. The lightning keeps a rhythm: three small flickers, then a big strike that lights the whole sea for a moment. Learn the beat and read the water on the big one.</p>
+        <p>The sea speeds up for the first three minutes or so, then keeps creeping faster until something gives.</p>
+        <h3>Scoring</h3>
+        <p>30 points for every league sailed, plus tokens. Pick a helmsman on the title screen; each has one perk.</p>
+        <ul class="perks" id="howPerks"></ul>
+      </div>
+      <button class="primary" id="howBack">Back to harbour</button>
     </section>
 
     <section id="pause" class="screen" hidden>
@@ -148,6 +194,7 @@ input{
         <dt>Leagues</dt><dd id="overDist"></dd>
         <dt>Tokens</dt><dd id="overTokens"></dd>
         <dt>Best combo</dt><dd id="overCombo"></dd>
+        <dt>Squalls weathered</dt><dd id="overSqualls"></dd>
         <dt>Helm</dt><dd id="overHelm"></dd>
       </dl>
       <p class="best" id="overBest"></p>
@@ -187,6 +234,16 @@ const LOCKER = {
   wren:"No coin on the seabed.", caspian:"The ward didn't hold.", vaelor:"Draconic, and still drowned."
 };
 const HIT_WORDS = ['Hull breach', 'Timbers!', 'Hard a-lee!', 'Brace!'];
+// ship's stores (power-ups) and squalls (stages)
+const POWERS = {
+  patch:    { name:'Patch kit',     color:'#e6dcc4', glyph:'+' },
+  wind:     { name:'Fair wind',     color:'#9fdcff', glyph:'\u2248', secs:5 },
+  lantern:  { name:'Storm lantern', color:'#f2b544', glyph:'\u2600', secs:8 },
+  hornpipe: { name:'Hornpipe',      color:'#ffd35c', glyph:'\u266A', secs:10 },
+};
+const POWER_GAP = [5000, 8000];   // px of sea between crates (~15–25 s)
+const SQUALL_SECS = 90;           // a squall is weathered every this many seconds
+const CALM_SECS = 4;              // hazard-free stretch after each squall
 
 // ---------- helpers ----------
 const $ = id => document.getElementById(id);
@@ -205,7 +262,8 @@ const store = loadStore();
 if (!Array.isArray(store.scores)) store.scores = [];
 
 // ---------- canvas sizing ----------
-const canvas = $('game'), ctx = canvas.getContext('2d'), frame = $('frame'), stage = $('stage');
+const canvas = $('game'), frame = $('frame'), stage = $('stage');
+let ctx = canvas.getContext('2d');   // swapped briefly to draw the how-to icons
 let scale = 1;
 function resize(){
   const bw = stage.clientWidth || W, bh = stage.clientHeight || H;
@@ -222,7 +280,7 @@ window.addEventListener('resize', resize);
 resize();
 
 // ---------- state ----------
-let state = 'title';           // title | run | pause | over
+let state = 'title';           // title | howto | run | pause | over
 let helmIdx = Math.max(0, HELMS.findIndex(h => h.id === store.helm));
 let G = null;
 let fleetCache = null, boardMode = 'local';
@@ -233,7 +291,8 @@ function newRun(){
     helm, lane:1, x:LANES[1], hull:3, score:0, dist:0, tokens:0, chain:0, combo:1, bestCombo:1,
     spd:220, t:0, ents:[], pops:[], nextRow:180, lastSafe:[0,1,2], inv:0,
     ward: helm.id === 'caspian', heal:0, shake:0, flash:0, bigFlash:0, bolt:null,
-    fogY:60, beat:0, beatT:2.5, hint:3.5, over:false, saved:false
+    fogY:60, beat:0, beatT:2.5, hint:3.5, over:false, saved:false,
+    nextPower:3000, wind:0, lantern:0, horn:0, squall:1, nextSquall:SQUALL_SECS, calm:0, banner:null
   };
 }
 const diff = g => Math.min(1, g.dist / (g.helm.id === 'mcnalty' ? 75000 : 60000));   // full storm at ~2:45 of sailing
@@ -247,14 +306,28 @@ function addEnt(g, h, y){
   if (h.kind === 'cutter') { e.w = 44; e.h = 76; e.toLane = h.toLane; e.shiftAt = rand(110, 330); e.shifting = false; }
   if (h.kind === 'sahu')   { e.w = 34; e.h = 38; e.warn = 0.55; e.vmul = 1.3; }   // >1.3 lets it catch the row ahead and block all three lanes
   if (h.kind === 'token')  { e.w = 30; e.h = 30; e.r = Math.random() * 6.28; }
+  if (h.kind === 'power')  { e.w = 34; e.h = 34; e.p = h.p; e.r = Math.random() * 6.28; }
   g.ents.push(e);
+}
+function pickPower(g){
+  const w = { patch: g.hull < 3 ? 1.2 : 0.3, wind:1, lantern: g.t > 40 ? 1 : 0.3, hornpipe:1 };
+  let r = Math.random() * Object.values(w).reduce((a, b) => a + b, 0);
+  for (const k in w){ r -= w[k]; if (r <= 0) return k; }
+  return 'wind';
 }
 function spawnRow(g){
   const d = diff(g);
+  const y = -90;
+  if (g.calm > 0){                                 // calm water after a squall: a line of tokens, no hazards
+    const l = clamp((g.calmLane ?? 1) + pick([-1, 0, 0, 1]), 0, 2);
+    g.calmLane = l;
+    addEnt(g, { kind:'token', lane:l }, y); addEnt(g, { kind:'token', lane:l }, y - 60);
+    g.lastSafe = [0, 1, 2];
+    return;
+  }
   const pTwo = 0.12 + 0.5 * d;
   const pCut = g.dist > 6000 ? 0.22 + 0.2 * d : 0;      // crown cutters after ~25 s
   const pSahu = g.dist > 15000 ? 0.18 + 0.22 * d : 0;   // sahuagin after ~1 min
-  const y = -90;
   for (let k = 0; k < 8; k++){
     const haz = [], occupied = new Set();
     const lanes = [0, 1, 2].sort(() => Math.random() - 0.5);
@@ -269,7 +342,10 @@ function spawnRow(g){
     if (!safe.length) continue;
     if (!safe.some(s => g.lastSafe.some(p => Math.abs(p - s) <= 1))) continue;   // always a reachable lane
     for (const h of haz) addEnt(g, h, y);
-    if (Math.random() < 0.6){
+    if (g.dist >= g.nextPower){
+      addEnt(g, { kind:'power', lane:pick(safe), p:pickPower(g) }, y);
+      g.nextPower = g.dist + rand(POWER_GAP[0], POWER_GAP[1]);
+    } else if (Math.random() < 0.6){
       const tl = pick(safe);
       addEnt(g, { kind:'token', lane:tl }, y);
       if (Math.random() < 0.35){ addEnt(g, { kind:'token', lane:tl }, y - 45); addEnt(g, { kind:'token', lane:tl }, y - 90); }
@@ -289,7 +365,7 @@ function collectToken(g){
   g.chain += g.helm.id === 'gilgamesh' ? 2 : 1;
   g.combo = Math.min(8, 1 + Math.floor(g.chain / 2));
   g.bestCombo = Math.max(g.bestCombo, g.combo);
-  const pts = Math.round(50 * g.combo * (g.helm.id === 'vaelor' ? 1.25 : 1));
+  const pts = Math.round(50 * g.combo * (g.helm.id === 'vaelor' ? 1.25 : 1) * (g.horn > 0 ? 2 : 1));
   g.score += pts;
   pop(g, '+' + pts + (g.combo > 1 ? '  ×' + g.combo : ''), g.x, SHIP_Y - 72, '#d9e4e8');
   if (g.helm.id === 'davy'){
@@ -297,7 +373,28 @@ function collectToken(g){
     if (g.heal >= 15 && g.hull < 3){ g.hull++; g.heal = 0; pop(g, 'Mended', g.x, SHIP_Y - 98, '#5cc8ff'); }
   }
 }
+function collectPower(g, p){
+  const P = POWERS[p];
+  if (p === 'patch'){
+    if (g.hull < 3){ g.hull++; pop(g, 'Patched', g.x, SHIP_Y - 72, P.color); }
+    else { g.score += 250; pop(g, '+250  spare timber', g.x, SHIP_Y - 72, P.color); }
+    return;
+  }
+  if (p === 'wind') g.wind = P.secs;
+  if (p === 'lantern') g.lantern = P.secs;
+  if (p === 'hornpipe') g.horn = P.secs;
+  pop(g, P.name + '!', g.x, SHIP_Y - 72, P.color);
+}
+function weatherSquall(g){
+  const n = g.squall;
+  g.squall++; g.nextSquall += SQUALL_SECS; g.calm = CALM_SECS; g.calmLane = g.lane;
+  let reward;
+  if (g.hull < 3){ g.hull++; reward = '+1 hull'; }
+  else { g.score += 1000 * n; reward = '+' + fmt(1000 * n) + ' points'; }
+  g.banner = { title:'Squall ' + n + ' weathered', sub:reward, t:2.8 };
+}
 function hitShip(g){
+  if (g.wind > 0) return;
   if (g.ward){ g.ward = false; g.inv = 1.2; pop(g, 'Ward holds', g.x, SHIP_Y - 72, '#8fa6ff'); return; }
   g.hull--; g.chain = 0; g.combo = 1; g.inv = 1.5; g.shake = 0.4;
   pop(g, pick(HIT_WORDS), g.x, SHIP_Y - 72, '#ff6b5c');
@@ -332,6 +429,10 @@ function update(g, dt){
 
   g.x += (LANES[g.lane] - g.x) * Math.min(1, dt * 18);
   g.inv = Math.max(0, g.inv - dt); g.shake = Math.max(0, g.shake - dt); g.hint = Math.max(0, g.hint - dt);
+  g.wind = Math.max(0, g.wind - dt); g.lantern = Math.max(0, g.lantern - dt); g.horn = Math.max(0, g.horn - dt);
+  g.calm = Math.max(0, g.calm - dt);
+  if (g.t >= g.nextSquall) weatherSquall(g);
+  if (g.banner){ g.banner.t -= dt; if (g.banner.t <= 0) g.banner = null; }
 
   if (g.dist >= g.nextRow){ spawnRow(g); g.nextRow = g.dist + (270 - 120 * d - 20 * s2); }   // row gap 270 → 150 → 130 px
 
@@ -343,11 +444,12 @@ function update(g, dt){
       if (!e.shifting && e.y > e.shiftAt) e.shifting = true;
       if (e.shifting){ const dx = LANES[e.toLane] - e.x, step = 260 * dt; e.x += Math.abs(dx) < step ? dx : Math.sign(dx) * step; }
     }
-    if (e.kind === 'token') e.r += dt * 4;
+    if (e.kind === 'token' || e.kind === 'power') e.r += dt * 4;
     if (e.y > H + 80){ e.dead = true; continue; }
     if (Math.abs(e.x - g.x) < (e.w + shipW) / 2 && Math.abs(e.y - (SHIP_Y - 4)) < (e.h + shipH) / 2){
       if (e.kind === 'token'){ e.dead = true; collectToken(g); }
-      else if (g.inv <= 0){ hitShip(g); if (g.over) break; }
+      else if (e.kind === 'power'){ e.dead = true; collectPower(g, e.p); }
+      else if (g.inv <= 0 && g.wind <= 0){ hitShip(g); if (g.over) break; }
     }
   }
   g.ents = g.ents.filter(e => !e.dead);
@@ -432,10 +534,22 @@ function drawEnt(e){
     ctx.beginPath(); ctx.arc(0, 0, 8, 0, 6.283); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(-5, 2); ctx.lineTo(5, -2); ctx.stroke();
     ctx.restore();
+  } else if (e.kind === 'power'){
+    const P = POWERS[e.p], glow = 0.35 + 0.2 * Math.sin(e.r * 1.5);
+    const gr = ctx.createRadialGradient(x, y, 4, x, y, 30);
+    gr.addColorStop(0, P.color); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalAlpha = glow; ctx.fillStyle = gr; ctx.fillRect(x - 30, y - 30, 60, 60); ctx.globalAlpha = 1;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(e.r * 0.5) * 0.15);
+    ctx.fillStyle = '#6b4a2b'; ctx.strokeStyle = '#3b2817'; ctx.lineWidth = 2;
+    ctx.fillRect(-14, -14, 28, 28); ctx.strokeRect(-14, -14, 28, 28);
+    ctx.strokeStyle = P.color; ctx.lineWidth = 2; ctx.strokeRect(-10, -10, 20, 20);
+    ctx.fillStyle = P.color; ctx.font = "700 19px 'Barlow Condensed', 'Arial Narrow', sans-serif";
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(P.glyph, 0, 1);
+    ctx.restore(); ctx.textBaseline = 'alphabetic';
   }
 }
 function drawFog(g){
-  const vis = g.bigFlash > 0 ? 1 : g.flash * 0.6;
+  const vis = Math.max(g.bigFlash > 0 ? 1 : g.flash * 0.6, Math.min(1, g.lantern) * 0.9);
   const a = 0.92 * (1 - vis);
   const bottom = g.fogY + 90;
   const gr = ctx.createLinearGradient(0, 0, 0, bottom);
@@ -455,6 +569,14 @@ function drawPops(g){
   }
   ctx.globalAlpha = 1;
 }
+function drawBanner(b){
+  ctx.save(); ctx.globalAlpha = Math.min(1, b.t / 0.5, (2.8 - b.t) / 0.3);
+  ctx.fillStyle = 'rgba(4,17,15,.72)'; ctx.fillRect(0, 250, W, 84);
+  ctx.textAlign = 'center'; ctx.fillStyle = '#e9efe9';
+  ctx.font = "400 30px 'IM Fell English', Georgia, serif"; ctx.fillText(b.title, W / 2, 288);
+  ctx.fillStyle = '#f2b544'; ctx.font = "700 20px 'Barlow Condensed', 'Arial Narrow', sans-serif"; ctx.fillText(b.sub, W / 2, 318);
+  ctx.restore();
+}
 function drawHint(g){
   ctx.save(); ctx.globalAlpha = Math.min(1, g.hint / 1.5) * 0.7; ctx.fillStyle = '#e9efe9';
   ctx.font = "500 17px 'Barlow Condensed', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center';
@@ -470,8 +592,13 @@ function render(g, now){
     for (const e of g.ents) drawEnt(e);
     const blink = g.inv > 0 ? (Math.sin(now * 0.04) > 0 ? 0.35 : 0.9) : 1;
     drawShip(g.x, SHIP_Y, g.helm, blink);
+    if (g.wind > 0){
+      ctx.strokeStyle = `rgba(159,220,255,${0.35 + 0.25 * Math.sin(now * 0.012)})`; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.ellipse(g.x, SHIP_Y - 4, 34, 50, 0, 0, 6.283); ctx.stroke();
+    }
     drawFog(g);
     drawPops(g);
+    if (g.banner) drawBanner(g.banner);
     if (g.hint > 0) drawHint(g);
   } else {
     drawShip(180, SHIP_Y + Math.sin(now * 0.0015) * 4, HELMS[helmIdx], 0.9);
@@ -480,19 +607,21 @@ function render(g, now){
 }
 
 // ---------- HUD + screens ----------
-const hud = $('hud'), hudScore = $('hudScore'), hudCombo = $('hudCombo'), hudHull = $('hudHull'), hudDist = $('hudDist');
+const hud = $('hud'), hudScore = $('hudScore'), hudCombo = $('hudCombo'), hudPower = $('hudPower'), hudHull = $('hudHull'), hudDist = $('hudDist');
 let lastHull = -1;
 function updateHud(g){
   hudScore.textContent = fmt(g.score);
   hudCombo.textContent = g.combo > 1 ? '\u00D7' + g.combo + ' combo' : '';
-  hudDist.textContent = (g.dist / 300).toFixed(1) + ' leagues';
+  hudDist.textContent = (g.dist / 300).toFixed(1) + ' leagues \u00B7 squall ' + g.squall;
+  const act = [['wind', g.wind], ['lantern', g.lantern], ['hornpipe', g.horn]].filter(a => a[1] > 0);
+  hudPower.innerHTML = act.map(([k, t]) => `<span style="color:${POWERS[k].color}">${POWERS[k].name} ${Math.ceil(t)}s</span>`).join('<br>');
   if (g.hull !== lastHull){
     lastHull = g.hull;
     [...hudHull.children].forEach((el, i) => el.classList.toggle('out', i >= g.hull));
   }
 }
 function showScreen(id){
-  for (const s of ['title', 'pause', 'over']) $(s).hidden = s !== id;
+  for (const s of ['title', 'howto', 'pause', 'over']) $(s).hidden = s !== id;
   hud.hidden = !(id === null && state === 'run');
 }
 
@@ -537,6 +666,28 @@ async function loadFleet(){
   } catch { fleetCache = null; boardMode = 'local'; renderBoard(); }
 }
 
+// ---------- how to sail ----------
+const ICONS = { rock:[0.6, 4], cutter:[0.5, 15], sahu:[1.05, 7], token:[1.6, 0], power:[1.1, 0] };   // scale, y offset
+function drawIcons(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2), main = ctx;
+  for (const cv of document.querySelectorAll('canvas[data-icon]')){
+    const kind = cv.dataset.icon, [s, dy] = ICONS[kind], px = cv.clientWidth || 54;
+    cv.width = cv.height = Math.round(px * dpr);
+    ctx = cv.getContext('2d');
+    const k = cv.width / 64;
+    ctx.setTransform(k, 0, 0, k, 0, 0); ctx.clearRect(0, 0, 64, 64);
+    ctx.translate(32, 32 + dy); ctx.scale(s, s);
+    drawEnt({ kind, x:0, y:0, seed:0.37, r:0.6, warn:0, p:cv.dataset.p });
+  }
+  ctx = main;
+}
+function openHow(){
+  state = 'howto';
+  $('howPerks').innerHTML = HELMS.map(h => `<li style="border-color:${h.color}">${esc(h.name)} <span>(${esc(h.sub)})</span><br>${h.perk}</li>`).join('');
+  showScreen('howto'); $('howto').scrollTop = 0; drawIcons();
+}
+function closeHow(){ state = 'title'; showScreen('title'); }
+
 // ---------- flow ----------
 function start(){
   G = newRun(); lastHull = -1; state = 'run';
@@ -554,6 +705,7 @@ function endRun(g){
   $('overDist').textContent = (g.dist / 300).toFixed(1);
   $('overTokens').textContent = g.tokens;
   $('overCombo').textContent = '\u00D7' + g.bestCombo;
+  $('overSqualls').textContent = g.squall - 1;
   $('overHelm').textContent = g.helm.name;
   $('overBest').textContent = score > prevBest ? 'New best on this device.' : (prevBest ? 'Best on this device: ' + fmt(prevBest) : '');
   $('nameIn').value = store.name || '';
@@ -599,6 +751,8 @@ window.addEventListener('keydown', ev => {
     else if (k === 'Escape' || k === 'p' || k === 'P') pause();
   } else if (state === 'pause'){
     if (k === 'Escape' || k === 'p' || k === 'P' || k === ' ' || k === 'Enter') resume();
+  } else if (state === 'howto'){
+    if (k === 'Escape'){ ev.preventDefault(); closeHow(); }
   } else if (state === 'title'){
     if ((k === ' ' || k === 'Enter') && tag !== 'BUTTON'){ ev.preventDefault(); start(); }
   } else if (state === 'over'){
@@ -609,6 +763,8 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) pause
 window.addEventListener('blur', pause);
 
 $('startBtn').addEventListener('click', start);
+$('howBtn').addEventListener('click', openHow);
+$('howBack').addEventListener('click', closeHow);
 $('resumeBtn').addEventListener('click', resume);
 $('abandonBtn').addEventListener('click', toHarbour);
 $('postBtn').addEventListener('click', saveScore);
@@ -621,7 +777,7 @@ let last = 0;
 function loop(ts){
   const dt = Math.min(0.05, last ? (ts - last) / 1000 : 0); last = ts;
   if (state === 'run' && G && !G.over){ update(G, dt); updateHud(G); }
-  render(state === 'title' ? null : G, ts);
+  render(state === 'title' || state === 'howto' ? null : G, ts);
   requestAnimationFrame(loop);
 }
 toHarbour();

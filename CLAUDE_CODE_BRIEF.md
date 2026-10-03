@@ -77,6 +77,8 @@ Game ↔ API contract (already implemented on both sides):
 | 5:00 | 626 | 141 | 0.22 s | 330 |
 | 7:00 | 691 | 131 | 0.19 s | 380 |
 
+Ship's stores (power-ups) and squalls (stages) were added at Chris's request; their knobs (`POWERS`, `POWER_GAP`, `SQUALL_SECS`, `CALM_SECS`) sit just below `HIT_WORDS`. Speed, spawn and fog curves are unchanged.
+
 Ship sits at y=540 on a 640-tall field. Knobs live near the top of the script in `index.html`: `diff` (first ramp), `squeeze` (second ramp), the `g.spd` line, the `g.fogY` line, and the `g.nextRow` line. McNalty's perk scales both ramps by 1.25.
 
 ## Known limits (tell Chris if they bite)
@@ -94,4 +96,4 @@ Chris's chosen second game. Concept locked at design level, not yet built:
 - Posts to the same Worker with `?game=crabbers-cove-dive`. The Worker already knows the display name.
 - Build it as `dive.html` in this repo. Link the two games from each other's title screens once both exist.
 
-Wait for Chris to say go on Phase 5; he may want to playtest Weatherlight Run for a week first.
+Status: first playable build of `dive.html` is in, linked both ways with Weatherlight Run, and each game has a How to page. Tuning knobs for the dive (breath, descent/ascent speed, hit costs, loot values, depth bonus) sit together near the top of its script; they're a first pass and need a playtest.
