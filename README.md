@@ -3,7 +3,7 @@
 Casual high-score games themed on our Ghosts of Saltmarsh party. One HTML file per game, no build step, shared leaderboard on a Cloudflare Worker.
 
 - `index.html` — Weatherlight Run (lane-dodging sail into the storm)
-- `dive.html` — Crabber's Cove Dive (one-breath, push-your-luck dive for sunken loot)
+- `dive.html` — Crabber's Cove Dive (one-breath stealth dive: sneak past sahuagin patrols, work oysters and chest locks, surface to bank)
 - `worker/` — score API (see `CLAUDE_CODE_BRIEF.md` for deployment)
 
 Play: open `index.html` in any browser, or the GitHub Pages link once deployed.
