@@ -2,9 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
-<title>Weatherlight Run</title>
+<meta name="theme-color" content="#071a1c">
+<meta name="description" content="Three games from our Ghosts of Saltmarsh campaign, one shared board, no logins.">
+<title>Saltmarsh Arcade</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Barlow+Condensed:wght@500;700&display=swap" rel="stylesheet">
@@ -19,191 +21,125 @@
   --display:'IM Fell English','Iowan Old Style','Palatino Linotype',Georgia,serif;
   --ui:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;
 }
-@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --ink:#e9efe9; } }
-:root[data-theme="dark"]{ --ink:#e9efe9; }
-html{ scroll-padding-top:env(safe-area-inset-top,0px); }
-html,body{ height:100%; margin:0; }
+*,*::before,*::after{ box-sizing:inherit; }
+html{ -webkit-text-size-adjust:100%; text-size-adjust:100%; }
 body{
-  background:var(--sea); color:var(--ink); font-family:var(--ui);
-  overflow:hidden; touch-action:none; -webkit-user-select:none; user-select:none;
+  margin:0; min-height:100vh; color:var(--ink); font:500 1rem/1.35 var(--ui);
+  background:var(--sea);
+  background-image:radial-gradient(ellipse 90% 40% at 50% 0%, rgba(242,181,68,.07), rgba(242,181,68,0) 70%),
+                   linear-gradient(180deg, var(--sea) 0%, var(--sea-deep) 100%);
   -webkit-tap-highlight-color:transparent;
 }
-#stage{ position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
-#frame{ position:relative; font-size:16px; }
-canvas{ display:block; touch-action:none; background:var(--sea); }
+a:focus-visible{ outline:2px solid var(--lantern); outline-offset:3px; }
+.vh{ position:absolute; width:1px; height:1px; margin:-1px; padding:0; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0; }
 
-.screen{
-  position:absolute; inset:0; display:flex; flex-direction:column; gap:.6em;
-  padding:7% 7% 5%; overflow:auto;
-  background:linear-gradient(180deg, rgba(4,17,15,.80), rgba(4,17,15,.93));
+.wrap{
+  max-width:600px; margin:0 auto;
+  padding:0 max(16px, env(safe-area-inset-right,0px)) 0 max(16px, env(safe-area-inset-left,0px));
 }
-.screen[hidden]{ display:none; }
+header{ padding:2.4em 0 1.6em; }
 .kicker{ margin:0; font:italic 400 1em/1.2 var(--display); color:var(--dim); }
-h1{ margin:0; font:400 2.5em/1 var(--display); letter-spacing:-.01em; }
-h2{ margin:0; font:400 2em/1 var(--display); }
-.lede{ margin:0; font:500 1em/1.3 var(--ui); color:var(--ink); max-width:22em; }
+h1{ margin:.15em 0 .3em; font:400 clamp(2.3rem, 9vw, 3.6rem)/1 var(--display); letter-spacing:-.01em; }
+.lede{ margin:0; font:500 1.1em/1.35 var(--ui); max-width:30em; }
 .lede em{ font-family:var(--display); font-style:italic; }
 
-.helms{ display:grid; grid-template-columns:repeat(3,1fr); gap:.4em; margin-top:.3em; }
-.helm{
-  appearance:none; border:1px solid var(--line); background:rgba(255,255,255,.035); color:var(--ink);
-  text-align:left; padding:.45em .5em; border-left:.3em solid transparent; cursor:pointer; font-family:var(--ui);
+.cards{ display:grid; grid-template-columns:minmax(0,1fr); gap:20px; margin:0; padding:0; }
+.card{
+  display:flex; flex-direction:column; min-width:0;
+  border:1px solid var(--line); background:linear-gradient(180deg, rgba(4,17,15,.55), rgba(4,17,15,.9));
 }
-.helm b{ display:block; font-weight:700; font-size:.95em; line-height:1.1; }
-.helm span{ display:block; color:var(--dim); font-size:.78em; line-height:1.2; }
-.helm[aria-checked="true"]{ background:rgba(255,255,255,.08); border-color:var(--line); }
-.helm:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid var(--lantern); outline-offset:2px; }
-.perk{ margin:0; min-height:2.4em; font-size:.9em; line-height:1.2; color:var(--dim); }
-.perk b{ color:var(--ink); font-weight:700; }
+.banner{ position:relative; display:block; aspect-ratio:2/1; border-bottom:1px solid var(--line); background:linear-gradient(180deg, #0b2428, #061517); }
+.banner canvas{ position:absolute; top:0; left:0; display:block; width:100%; height:100%; }   /* the 2:1 box alone sets the size */
+@supports not (aspect-ratio:2/1){ .banner{ height:0; padding-top:50%; } }   /* iOS before 15 */
+.body{ flex:1; display:flex; flex-direction:column; gap:.55em; padding:16px; }
+.tag{ margin:0; font:italic 400 .95em/1.2 var(--display); color:var(--dim); }
+h2{ margin:0; font:400 1.85em/1.05 var(--display); }
+h2 a{ color:inherit; text-decoration:none; }
+h2 a:hover{ color:var(--lantern); }
+.pitch{ flex:1; margin:0 0 .4em; font-size:1.02em; line-height:1.35; }
+.pitch em{ font-family:var(--display); font-style:italic; }
+a.primary{
+  display:flex; align-items:center; justify-content:center; min-height:48px; padding:.65em 1em;
+  background:var(--lantern); color:#1a1200; font:700 1.2em/1 var(--ui); letter-spacing:.03em;
+  text-decoration:none; transition:background-color .15s;
+}
+a.primary:hover{ background:#f7c766; }
+a.primary:active{ background:#d99d33; }
 
-button.primary{
-  appearance:none; border:0; background:var(--lantern); color:#1a1200;
-  font:700 1.15em/1 var(--ui); padding:.65em 1em; cursor:pointer;
-}
-button.primary:disabled{ opacity:.5; cursor:default; }
-button.quiet{
-  appearance:none; border:1px solid var(--line); background:transparent; color:var(--ink);
-  font:500 1em/1 var(--ui); padding:.55em .9em; cursor:pointer;
-}
-.row{ display:flex; gap:.5em; align-items:center; }
-
-.board{ flex:1; min-height:5.5em; display:flex; flex-direction:column; border-top:1px solid var(--line); padding-top:.5em; }
-.boardHead{ display:flex; justify-content:space-between; align-items:baseline; gap:.5em; }
-.boardHead span{ font:italic 400 1em/1 var(--display); color:var(--dim); }
-.boardHead button{ appearance:none; border:0; background:none; color:var(--lantern); font:500 .9em/1 var(--ui); cursor:pointer; padding:0; }
-ol{ list-style:none; margin:.3em 0 0; padding:0; overflow:auto; }
+.board{ margin-top:.6em; border-top:1px solid var(--line); padding-top:.5em; }
+.board[hidden]{ display:none; }
+.board h3{ margin:0; font:italic 400 1em/1.2 var(--display); color:var(--dim); }
+ol{ list-style:none; margin:.3em 0 0; padding:0; min-height:5.6em; }   /* three rows reserved: no jump when the board loads, Play buttons line up */
 ol li{
-  display:grid; grid-template-columns:1.5em 1fr auto 4.2em; gap:.5em; align-items:baseline;
-  padding:.22em 0; font-size:.95em; border-bottom:1px dotted rgba(159,179,181,.14);
+  display:grid; grid-template-columns:1.5em minmax(0,1fr) auto minmax(4.2em,auto); gap:.5em; align-items:baseline;
+  padding:.22em 0; font-size:.95em; line-height:1.3; border-bottom:1px dotted rgba(159,179,181,.14);
 }
 ol li .rk{ color:var(--dim); }
 ol li .nm{ font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 ol li .hm{ color:var(--dim); font-size:.85em; }
 ol li .sc{ text-align:right; font-variant-numeric:tabular-nums; }
 ol li.empty{ display:block; color:var(--dim); border:0; }
-.hint{ margin:0; font-size:.85em; color:var(--dim); line-height:1.25; }
 
-.scoreBig{ display:flex; align-items:baseline; gap:.4em; margin:.1em 0; }
-.scoreBig #overScore{ font:700 3.4em/1 var(--ui); font-variant-numeric:tabular-nums; }
-.scoreBig .lbl{ font:italic 400 1.1em/1 var(--display); color:var(--dim); }
-dl.stats{ display:grid; grid-template-columns:auto 1fr; gap:.15em .8em; margin:0; font-size:.95em; }
-dl.stats dt{ color:var(--dim); }
-dl.stats dd{ margin:0; font-weight:700; font-variant-numeric:tabular-nums; }
-.best{ margin:0; color:var(--lantern); font:italic 400 1.05em/1.2 var(--display); min-height:1.2em; }
-label{ display:block; font-size:.9em; color:var(--dim); }
-input{
-  width:100%; box-sizing:border-box; margin-top:.25em; padding:.5em .6em;
-  font:700 1.1em/1 var(--ui); color:var(--ink); background:rgba(255,255,255,.06);
-  border:1px solid var(--line); border-radius:0;
+footer{ margin-top:2.4em; padding:1.1em 0 2.2em; border-top:1px solid var(--line); color:var(--dim); font-size:.95em; }
+footer p{ margin:0 0 .3em; }
+footer .party{ font:italic 400 1.05em/1.2 var(--display); }
+
+@media (min-width:900px){
+  .wrap{ max-width:1100px; padding-left:max(24px, env(safe-area-inset-left,0px)); padding-right:max(24px, env(safe-area-inset-right,0px)); }
+  header{ padding:3.4em 0 2em; }
+  .cards{ grid-template-columns:repeat(3, minmax(0,1fr)); gap:24px; }
+  h2{ font-size:clamp(1.55em, 2.6vw, 1.85em); }   /* keeps "Crabber's Cove Dive" on one line in the narrow columns */
 }
-.status{ margin:0; min-height:1.2em; font-size:.9em; color:var(--dim); }
-.row .primary{ flex:1; }
-.hint a{ color:var(--lantern); }
-
-.guide{ display:flex; flex-direction:column; gap:.55em; }
-.guide h3{ margin:.3em 0 0; font:italic 400 1.15em/1.1 var(--display); color:var(--lantern); }
-.guide p{ margin:0; font-size:.95em; line-height:1.3; }
-.guide p b{ font-weight:700; }
-.guide em{ font-family:var(--display); font-style:italic; }
-.item{ display:grid; grid-template-columns:3.4em 1fr; gap:.6em; align-items:center; }
-.item canvas{ width:3.4em; height:3.4em; background:#0b2428; border:1px solid var(--line); }
-ul.perks{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.35em; }
-ul.perks li{ border-left:.3em solid; padding-left:.5em; font-size:.92em; line-height:1.25; }
-ul.perks li span{ color:var(--dim); }
-
-#hud{ position:absolute; inset:0; pointer-events:none; padding:3.5% 5%; display:flex; justify-content:space-between; align-items:flex-start; }
-#hud[hidden]{ display:none; }
-#hudScore{ font:700 2.1em/1 var(--ui); font-variant-numeric:tabular-nums; text-shadow:0 1px 6px rgba(0,0,0,.6); }
-#hudCombo{ font:700 1.05em/1.2 var(--ui); color:var(--lantern); min-height:1.2em; }
-#hudPower{ font:700 .95em/1.2 var(--ui); min-height:1.2em; text-shadow:0 1px 6px rgba(0,0,0,.6); }
-.hudR{ text-align:right; }
-#hudHull{ font-size:1.3em; letter-spacing:.15em; line-height:1; text-shadow:0 1px 6px rgba(0,0,0,.6); }
-#hudHull i{ font-style:normal; color:var(--lantern); }
-#hudHull i.out{ color:rgba(233,239,233,.22); }
-#hudDist{ font:500 .95em/1.4 var(--ui); color:var(--dim); font-variant-numeric:tabular-nums; }
-
-@media (prefers-reduced-motion: reduce){ .screen{ transition:none; } }
+@media (prefers-reduced-motion: reduce){ a.primary{ transition:none; } }
 </style>
 </head>
 <body>
-<div id="stage">
-  <div id="frame">
-    <canvas id="game" width="360" height="640" aria-label="Weatherlight Run, a lane-dodging sailing game"></canvas>
+<div class="wrap">
+  <header>
+    <p class="kicker">Ghosts of Saltmarsh</p>
+    <h1>The Saltmarsh Arcade</h1>
+    <p class="lede">Three games from the campaign, one shared board, no logins. Pick a cabinet.</p>
+  </header>
 
-    <div id="hud" hidden>
-      <div class="hudL"><div id="hudScore">0</div><div id="hudCombo"></div><div id="hudPower"></div></div>
-      <div class="hudR"><div id="hudHull"><i>&#9679;</i><i>&#9679;</i><i>&#9679;</i></div><div id="hudDist">0.0 leagues</div></div>
-    </div>
-
-    <section id="title" class="screen" aria-labelledby="gameTitle">
-      <p class="kicker">A Saltmarsh arcade</p>
-      <h1 id="gameTitle">Weatherlight Run</h1>
-      <p class="lede">Sail the <em>Weatherlight</em> into the storm. Dodge the crown, hoard the mithril, read the lightning.</p>
-      <div class="helms" id="helms" role="radiogroup" aria-label="Choose a helmsman"></div>
-      <p class="perk" id="perkLine"></p>
-      <div class="row"><button class="primary" id="startBtn">Hoist sail</button><button class="quiet" id="howBtn">How to sail</button></div>
-      <div class="board">
-        <div class="boardHead"><span id="boardTitle">Best on this device</span><button id="boardToggle" hidden>Show the fleet</button></div>
-        <ol id="boardList"></ol>
+  <main class="cards">
+    <article class="card" data-game="weatherlight-run" aria-labelledby="g1">
+      <a class="banner" href="weatherlight.html" tabindex="-1" aria-hidden="true"><canvas data-scene="storm"></canvas></a>
+      <div class="body">
+        <p class="tag">Endless &middot; tap to steer</p>
+        <h2 id="g1"><a href="weatherlight.html">Weatherlight Run</a></h2>
+        <p class="pitch">Sail the <em>Weatherlight</em> into the storm. Tap left or right to dodge rocks, crown cutters and sahuagin, and read the lightning through the fog. How far can you get?</p>
+        <a class="primary" href="weatherlight.html">Play<span class="vh"> Weatherlight Run</span></a>
+        <section class="board" hidden aria-labelledby="b1"><h3 id="b1">Top of the fleet<span class="vh">, Weatherlight Run</span></h3><ol></ol></section>
       </div>
-      <p class="hint">Tap left or right of the ship to change lanes. Also in the arcade: <a href="dive.html">Crabber's Cove Dive</a></p>
-    </section>
+    </article>
 
-    <section id="howto" class="screen" hidden aria-labelledby="howTitle">
-      <p class="kicker">Ship's articles</p>
-      <h2 id="howTitle">How to sail</h2>
-      <div class="guide">
-        <h3>At the helm</h3>
-        <p>Tap left or right of the ship to slide one lane that way. On a keyboard, use the arrow keys or A and D. Esc or P pauses, and the game pauses itself if you switch apps.</p>
-        <p>The <em>Weatherlight</em> has three hull points, shown top right. Each hit costs one, then the ship blinks for a moment and can't be hit again. Lose all three and the run is over.</p>
-        <h3>In the water</h3>
-        <div class="item"><canvas data-icon="rock"></canvas><p><b>Rocks.</b> They sit still in their lane. Sometimes two lanes are blocked at once, but there's always a lane you can reach in time.</p></div>
-        <div class="item"><canvas data-icon="cutter"></canvas><p><b>Crown cutters.</b> From about 25 seconds in. Each starts in one lane and swings into the next partway down, so watch both lanes.</p></div>
-        <div class="item"><canvas data-icon="sahu"></canvas><p><b>Sahuagin.</b> From about a minute in. A green ripple marks where one will surface, then it surges at you faster than the current.</p></div>
-        <div class="item"><canvas data-icon="token"></canvas><p><b>Hornpipe tokens.</b> Mithril, worth 50 points times your combo. They often come in lines of three, and they never hurt.</p></div>
-        <h3>Combo</h3>
-        <p>Every two tokens raise your combo by one, up to &times;8 (shown under your score). Any hit drops it back to &times;1.</p>
-        <h3>Ship's stores</h3>
-        <p>Every 20 seconds or so a glowing crate floats down an open lane. Sail through it to pick it up. Timed ones show a countdown under your combo.</p>
-        <div class="item"><canvas data-icon="power" data-p="patch"></canvas><p><b>Patch kit.</b> Restores one hull point. At full hull it's worth 250 points instead.</p></div>
-        <div class="item"><canvas data-icon="power" data-p="wind"></canvas><p><b>Fair wind.</b> Nothing can hurt you for 5 seconds.</p></div>
-        <div class="item"><canvas data-icon="power" data-p="lantern"></canvas><p><b>Storm lantern.</b> Burns the fog away for 8 seconds.</p></div>
-        <div class="item"><canvas data-icon="power" data-p="hornpipe"></canvas><p><b>Hornpipe.</b> Tokens are worth double for 10 seconds.</p></div>
-        <h3>Squalls</h3>
-        <p>Every 90 seconds you weather a squall. You get a reward (a hull point back if you're damaged, otherwise 1,000 points times the squall number), then a few seconds of calm water with a line of tokens before the next squall hits. The squall count shows next to your leagues.</p>
-        <h3>The storm</h3>
-        <p>Fog rolls down from the top and thickens as the run goes on, hiding what's coming. The lightning keeps a rhythm: three small flickers, then a big strike that lights the whole sea for a moment. Learn the beat and read the water on the big one.</p>
-        <p>The sea speeds up for the first three minutes or so, then keeps creeping faster until something gives.</p>
-        <h3>Scoring</h3>
-        <p>30 points for every league sailed, plus tokens. Pick a helmsman on the title screen; each has one perk.</p>
-        <ul class="perks" id="howPerks"></ul>
+    <article class="card" data-game="crabbers-cove-dive" aria-labelledby="g2">
+      <a class="banner" href="dive.html" tabindex="-1" aria-hidden="true"><canvas data-scene="cove"></canvas></a>
+      <div class="body">
+        <p class="tag">One breath &middot; stealth heist</p>
+        <h2 id="g2"><a href="dive.html">Crabber's Cove Dive</a></h2>
+        <p class="pitch">One breath, one heist. Creep past sahuagin patrols, hide in the kelp, work oysters and chest locks, and get back to the skiff before you drown.</p>
+        <a class="primary" href="dive.html">Play<span class="vh"> Crabber's Cove Dive</span></a>
+        <section class="board" hidden aria-labelledby="b2"><h3 id="b2">Top of the fleet<span class="vh">, Crabber's Cove Dive</span></h3><ol></ol></section>
       </div>
-      <button class="primary" id="howBack">Back to harbour</button>
-    </section>
+    </article>
 
-    <section id="pause" class="screen" hidden>
-      <p class="kicker">Becalmed.</p>
-      <h2>Paused</h2>
-      <div class="row"><button class="primary" id="resumeBtn">Resume</button><button class="quiet" id="abandonBtn">Abandon run</button></div>
-    </section>
+    <article class="card" data-game="throw-the-rogue" aria-labelledby="g3">
+      <a class="banner" href="throw.html" tabindex="-1" aria-hidden="true"><canvas data-scene="cliff"></canvas></a>
+      <div class="body">
+        <p class="tag">Five throws a round</p>
+        <h2 id="g3"><a href="throw.html">Throw the Rogue</a></h2>
+        <p class="pitch">Session three, the clifftop. Fling <em>Wren</em> into the cove, flatten the crew, smash the crates and put him through the tent.</p>
+        <a class="primary" href="throw.html">Play<span class="vh"> Throw the Rogue</span></a>
+        <section class="board" hidden aria-labelledby="b3"><h3 id="b3">Top of the crew<span class="vh">, Throw the Rogue</span></h3><ol></ol></section>
+      </div>
+    </article>
+  </main>
 
-    <section id="over" class="screen" hidden>
-      <p class="kicker" id="overKicker">Davy Jones' locker.</p>
-      <div class="scoreBig"><span id="overScore">0</span><span class="lbl">points</span></div>
-      <dl class="stats">
-        <dt>Leagues</dt><dd id="overDist"></dd>
-        <dt>Tokens</dt><dd id="overTokens"></dd>
-        <dt>Best combo</dt><dd id="overCombo"></dd>
-        <dt>Squalls weathered</dt><dd id="overSqualls"></dd>
-        <dt>Helm</dt><dd id="overHelm"></dd>
-      </dl>
-      <p class="best" id="overBest"></p>
-      <label>Your name on the board<input id="nameIn" maxlength="12" autocomplete="off" spellcheck="false" placeholder="Wren"></label>
-      <button class="primary" id="postBtn">Save score</button>
-      <p class="status" id="postStatus"></p>
-      <div class="row"><button class="quiet" id="againBtn">Sail again</button><button class="quiet" id="menuBtn">Back to harbour</button></div>
-    </section>
-  </div>
+  <footer>
+    <p>Each game keeps its own board. Only the name you type is saved.</p>
+    <p class="party">Ghosts of Saltmarsh</p>
+  </footer>
 </div>
 
 <script>
@@ -211,577 +147,303 @@ ul.perks li span{ color:var(--dim); }
 'use strict';
 
 // ---------- config ----------
-// Claude Code: after deploying worker/worker.js, set this to the Worker URL,
-// e.g. 'https://saltmarsh-arcade.<your-subdomain>.workers.dev'. Empty = scores stay on this device.
 const LEADERBOARD_URL = 'https://saltmarsh-arcade.cbingham222.workers.dev';
-const GAME_ID = 'weatherlight-run';
-const STORE = 'wlr.v1';
-
-const W = 360, H = 640;
-const LANES = [60, 180, 300];
-const SHIP_Y = 540;
-
-const HELMS = [
-  { id:'caspian',   name:'Caspian Dreadtide',     sub:"Parker's wizard",   color:'#8fa6ff', perk:'<b>Arcane ward.</b> The first hit of the run is absorbed.' },
-  { id:'vaelor',    name:'Vaelor Borean',         sub:"Joe's sorcerer",    color:'#ff9a5c', perk:'<b>Draconic greed.</b> Tokens are worth 25% more.' },
-  { id:'davy',      name:'Davy Jones',            sub:"Hales's druid",     color:'#5cc8ff', perk:'<b>Mending.</b> Every 15 tokens restores one hull.' },
-  { id:'wren',      name:'Wren Pike',             sub:"Nick's rogue",      color:'#c25cff', perk:'<b>Evasion.</b> A narrower hull slips through tighter gaps.' },
-  { id:'mcnalty',   name:'Midknight McNalty',     sub:"Jesse's ranger",    color:'#9ad36b', perk:'<b>Steady hand.</b> The storm builds 20% slower; distance scores 15% less.' },
-  { id:'gilgamesh', name:'Gilgamesh Atlas Orion', sub:"Chandler's bard",   color:'#ffd35c', perk:'<b>Inspiration.</b> Combo climbs twice as fast.' },
-];
-const LOCKER = {
-  davy:"Your own locker, Davy.", gilgamesh:"The rhythm stopped.", mcnalty:"Punishment served.",
-  wren:"No coin on the seabed.", caspian:"The ward didn't hold.", vaelor:"Draconic, and still drowned."
-};
-const HIT_WORDS = ['Hull breach', 'Timbers!', 'Hard a-lee!', 'Brace!'];
-// ship's stores (power-ups) and squalls (stages)
-const POWERS = {
-  patch:    { name:'Patch kit',     color:'#e6dcc4', glyph:'+' },
-  wind:     { name:'Fair wind',     color:'#9fdcff', glyph:'\u2248', secs:5 },
-  lantern:  { name:'Storm lantern', color:'#f2b544', glyph:'\u2600', secs:8 },
-  hornpipe: { name:'Hornpipe',      color:'#ffd35c', glyph:'\u266A', secs:10 },
-};
-const POWER_GAP = [5000, 8000];   // px of sea between crates (~15–25 s)
-const SQUALL_SECS = 90;           // a squall is weathered every this many seconds
-const CALM_SECS = 4;              // hazard-free stretch after each squall
+const HELM_NAMES = { caspian:'Caspian', vaelor:'Vaelor', davy:'Davy', wren:'Wren', mcnalty:'Midknight', gilgamesh:'Gilgamesh' };
+const VW = 360, VH = 180;                  // banner art space (2:1)
+const TAU = Math.PI * 2;
+const STILL_T = 3936;                      // the frame shown under reduced motion (bolt over the returning fog)
 
 // ---------- helpers ----------
-const $ = id => document.getElementById(id);
-const rand = (a, b) => a + Math.random() * (b - a);
-const pick = arr => arr[Math.floor(Math.random() * arr.length)];
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const helmOf = id => HELMS.find(h => h.id === id);
-const helmShort = id => { const h = helmOf(id); return h ? h.name.split(' ')[0] : '—'; };
-const fmt = n => Math.floor(n).toLocaleString();
+const fmt = n => Math.floor(Number(n) || 0).toLocaleString();
+const helmName = id => Object.prototype.hasOwnProperty.call(HELM_NAMES, id) ? HELM_NAMES[id] : '—';
+const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
-// ---------- storage (per device) ----------
-function loadStore(){ try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch { return {}; } }
-function saveStore(){ try { localStorage.setItem(STORE, JSON.stringify(store)); } catch {} }
-const store = loadStore();
-if (!Array.isArray(store.scores)) store.scores = [];
-
-// ---------- canvas sizing ----------
-const canvas = $('game'), frame = $('frame'), stage = $('stage');
-let ctx = canvas.getContext('2d');   // swapped briefly to draw the how-to icons
-let scale = 1;
-function resize(){
-  const bw = stage.clientWidth || W, bh = stage.clientHeight || H;
-  scale = Math.max(0.1, Math.min(bw / W, bh / H));
-  const cw = Math.floor(W * scale), ch = Math.floor(H * scale);
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.width = Math.floor(cw * dpr); canvas.height = Math.floor(ch * dpr);
-  canvas.style.width = cw + 'px'; canvas.style.height = ch + 'px';
-  frame.style.width = cw + 'px'; frame.style.height = ch + 'px';
-  frame.style.fontSize = (16 * scale) + 'px';
-  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+// ---------- boards ----------
+function paint(ol, rows){                  // rows: array | 'load' | anything else = failure
+  if (rows === 'load'){ ol.innerHTML = '<li class="empty">Checking the board…</li>'; return; }
+  if (!Array.isArray(rows)){ ol.innerHTML = '<li class="empty">Couldn’t reach the board.</li>'; return; }
+  if (!rows.length){ ol.innerHTML = '<li class="empty">No scores yet. Be the first.</li>'; return; }
+  ol.innerHTML = rows.slice(0, 3).map((e, i) => {
+    e = e && typeof e === 'object' ? e : {};
+    const nm = e.name == null || e.name === '' ? '—' : e.name;
+    return `<li><span class="rk">${i + 1}</span><span class="nm">${esc(nm)}</span><span class="hm">${esc(helmName(e.helm))}</span><span class="sc">${esc(fmt(e.score))}</span></li>`;
+  }).join('');
 }
-window.addEventListener('resize', resize);
-resize();
-
-// ---------- state ----------
-let state = 'title';           // title | howto | run | pause | over
-let helmIdx = Math.max(0, HELMS.findIndex(h => h.id === store.helm));
-let G = null;
-let fleetCache = null, boardMode = 'local';
-
-function newRun(){
-  const helm = HELMS[helmIdx];
-  return {
-    helm, lane:1, x:LANES[1], hull:3, score:0, dist:0, tokens:0, chain:0, combo:1, bestCombo:1,
-    spd:220, t:0, ents:[], pops:[], nextRow:180, lastSafe:[0,1,2], inv:0,
-    ward: helm.id === 'caspian', heal:0, shake:0, flash:0, bigFlash:0, bolt:null,
-    fogY:60, beat:0, beatT:2.5, hint:3.5, over:false, saved:false,
-    nextPower:3000, wind:0, lantern:0, horn:0, squall:1, nextSquall:SQUALL_SECS, calm:0, banner:null
-  };
+async function loadBoard(card){
+  const sec = card.querySelector('.board'), ol = card.querySelector('ol'), id = card.dataset.game;
+  if (!sec || !ol || !id) return;
+  sec.hidden = false; paint(ol, 'load');
+  const ac = typeof AbortController === 'function' ? new AbortController() : null;
+  const timer = ac ? setTimeout(() => ac.abort(), 9000) : 0;
+  try {
+    const r = await fetch(`${LEADERBOARD_URL}?game=${encodeURIComponent(id)}`, ac ? { cache:'no-store', signal:ac.signal } : { cache:'no-store' });
+    if (!r.ok) throw new Error('bad status');
+    paint(ol, await r.json());
+  } catch { paint(ol, null); }
+  finally { if (timer) clearTimeout(timer); }
 }
-const diff = g => Math.min(1, g.dist / (g.helm.id === 'mcnalty' ? 75000 : 60000));   // full storm at ~2:45 of sailing
-// second ramp ("the squeeze"): past the plateau, speed creeps to a hard cap and rows pack tighter, so runs end
-const squeeze = g => { const k = g.helm.id === 'mcnalty' ? 1.25 : 1; return clamp((g.dist - 60000 * k) / (170000 * k), 0, 1); };
+if (typeof fetch === 'function'){
+  document.querySelectorAll('.card[data-game]').forEach(loadBoard);
+  window.addEventListener('pageshow', e => { if (e.persisted) document.querySelectorAll('.card[data-game]').forEach(loadBoard); });   // back from a game via bfcache
+}
 
-// ---------- spawning ----------
-function addEnt(g, h, y){
-  const e = { kind:h.kind, lane:h.lane, x:LANES[h.lane], y, dead:false };
-  if (h.kind === 'rock')   { e.w = 70; e.h = 56; e.seed = Math.random(); }
-  if (h.kind === 'cutter') { e.w = 44; e.h = 76; e.toLane = h.toLane; e.shiftAt = rand(110, 330); e.shifting = false; }
-  if (h.kind === 'sahu')   { e.w = 34; e.h = 38; e.warn = 0.55; e.vmul = 1.3; }   // >1.3 lets it catch the row ahead and block all three lanes
-  if (h.kind === 'token')  { e.w = 30; e.h = 30; e.r = Math.random() * 6.28; }
-  if (h.kind === 'power')  { e.w = 34; e.h = 34; e.p = h.p; e.r = Math.random() * 6.28; }
-  g.ents.push(e);
-}
-function pickPower(g){
-  const w = { patch: g.hull < 3 ? 1.2 : 0.3, wind:1, lantern: g.t > 40 ? 1 : 0.3, hornpipe:1 };
-  let r = Math.random() * Object.values(w).reduce((a, b) => a + b, 0);
-  for (const k in w){ r -= w[k]; if (r <= 0) return k; }
-  return 'wind';
-}
-function spawnRow(g){
-  const d = diff(g);
-  const y = -90;
-  if (g.calm > 0){                                 // calm water after a squall: a line of tokens, no hazards
-    const l = clamp((g.calmLane ?? 1) + pick([-1, 0, 0, 1]), 0, 2);
-    g.calmLane = l;
-    addEnt(g, { kind:'token', lane:l }, y); addEnt(g, { kind:'token', lane:l }, y - 60);
-    g.lastSafe = [0, 1, 2];
-    return;
+// ---------- shared art (same shapes and colours as the games) ----------
+function rockShape(c, x, y, rx, ry, seed, n){
+  c.fillStyle = '#263536'; c.strokeStyle = '#4a6264'; c.lineWidth = 2;
+  c.beginPath();
+  for (let i = 0; i < n; i++){
+    const a = i / n * TAU, r = 1 + 0.12 * Math.sin(seed * 20 + i * 3.1);
+    i ? c.lineTo(x + Math.cos(a) * rx * r, y + Math.sin(a) * ry * r) : c.moveTo(x + Math.cos(a) * rx * r, y + Math.sin(a) * ry * r);
   }
-  const pTwo = 0.12 + 0.5 * d;
-  const pCut = g.dist > 6000 ? 0.22 + 0.2 * d : 0;      // crown cutters after ~25 s
-  const pSahu = g.dist > 15000 ? 0.18 + 0.22 * d : 0;   // sahuagin after ~1 min
-  for (let k = 0; k < 8; k++){
-    const haz = [], occupied = new Set();
-    const lanes = [0, 1, 2].sort(() => Math.random() - 0.5);
-    if (Math.random() < pCut){
-      const a = lanes[0], b = a === 1 ? pick([0, 2]) : 1;
-      haz.push({ kind:'cutter', lane:a, toLane:b }); occupied.add(a); occupied.add(b);
-    } else {
-      const n = Math.random() < pTwo ? 2 : 1;
-      for (let i = 0; i < n; i++){ haz.push({ kind: Math.random() < pSahu ? 'sahu' : 'rock', lane:lanes[i] }); occupied.add(lanes[i]); }
-    }
-    const safe = [0, 1, 2].filter(l => !occupied.has(l));
-    if (!safe.length) continue;
-    if (!safe.some(s => g.lastSafe.some(p => Math.abs(p - s) <= 1))) continue;   // always a reachable lane
-    for (const h of haz) addEnt(g, h, y);
-    if (g.dist >= g.nextPower){
-      addEnt(g, { kind:'power', lane:pick(safe), p:pickPower(g) }, y);
-      g.nextPower = g.dist + rand(POWER_GAP[0], POWER_GAP[1]);
-    } else if (Math.random() < 0.6){
-      const tl = pick(safe);
-      addEnt(g, { kind:'token', lane:tl }, y);
-      if (Math.random() < 0.35){ addEnt(g, { kind:'token', lane:tl }, y - 45); addEnt(g, { kind:'token', lane:tl }, y - 90); }
-    }
-    g.lastSafe = safe;
-    return;
-  }
-  const l = pick([0, 1, 2]);                      // fallback: one rock, always passable
-  addEnt(g, { kind:'rock', lane:l }, y);
-  g.lastSafe = [0, 1, 2].filter(x => x !== l);
+  c.closePath(); c.fill(); c.stroke();
+}
+function ship(c, glow){                    // weatherlight.html drawShip, at the origin
+  c.fillStyle = glow; c.fillRect(-80, -110, 160, 160);
+  c.strokeStyle = 'rgba(217,228,232,.22)'; c.lineWidth = 2;
+  c.beginPath(); c.moveTo(-12, 36); c.lineTo(-22, 74); c.moveTo(12, 36); c.lineTo(22, 74); c.stroke();
+  c.fillStyle = '#6b4a2b'; c.strokeStyle = '#3b2817';
+  c.beginPath(); c.moveTo(0, -42); c.lineTo(21, 2); c.lineTo(16, 34); c.lineTo(-16, 34); c.lineTo(-21, 2); c.closePath(); c.fill(); c.stroke();
+  c.strokeStyle = 'rgba(0,0,0,.28)'; c.lineWidth = 1.5;
+  c.beginPath(); c.moveTo(0, -34); c.lineTo(0, 30); c.stroke();
+  c.fillStyle = '#e6dcc4'; c.strokeStyle = '#b9ad92'; c.lineWidth = 1;
+  c.beginPath(); c.moveTo(-18, -6); c.quadraticCurveTo(0, 6, 18, -6); c.lineTo(14, 18); c.quadraticCurveTo(0, 26, -14, 18); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = '#3b2817'; c.beginPath(); c.arc(0, 2, 3, 0, TAU); c.fill();
+  c.fillStyle = '#5cc8ff'; c.beginPath(); c.moveTo(0, -14); c.lineTo(15, -10); c.lineTo(0, -6); c.closePath(); c.fill();
+  c.fillStyle = '#f2b544'; c.beginPath(); c.arc(0, -30, 3.5, 0, TAU); c.fill();
+}
+function cutter(c){                        // a crown cutter, heading down
+  c.fillStyle = '#8c2a26'; c.strokeStyle = '#4d1512'; c.lineWidth = 2;
+  c.beginPath(); c.moveTo(0, 40); c.lineTo(20, -4); c.lineTo(14, -36); c.lineTo(-14, -36); c.lineTo(-20, -4); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = '#efe9d8'; c.strokeStyle = '#b9ad92'; c.lineWidth = 1;
+  c.beginPath(); c.moveTo(-16, -2); c.quadraticCurveTo(0, -14, 16, -2); c.lineTo(12, 22); c.quadraticCurveTo(0, 12, -12, 22); c.closePath(); c.fill(); c.stroke();
+  c.fillStyle = '#f2b544'; c.beginPath(); c.moveTo(0, 6); c.lineTo(-14, 2); c.lineTo(0, -2); c.closePath(); c.fill();
+}
+function sahu(c){                          // dive.html drawSahu, head up
+  c.fillStyle = 'rgba(63,178,127,.18)'; c.beginPath(); c.ellipse(0, 4, 22, 26, 0, 0, TAU); c.fill();
+  c.fillStyle = '#3fb27f'; c.strokeStyle = '#1c6b48'; c.lineWidth = 2;
+  c.beginPath(); c.moveTo(-9, 18); c.lineTo(-4, 26); c.lineTo(0, 20); c.lineTo(4, 26); c.lineTo(9, 18); c.closePath(); c.fill(); c.stroke();
+  c.beginPath(); c.ellipse(0, 2, 10, 17, 0, 0, TAU); c.fill(); c.stroke();
+  c.fillStyle = '#1c6b48'; c.beginPath(); c.moveTo(-3, -12); c.quadraticCurveTo(0, -2, 0, 14); c.quadraticCurveTo(6, 0, 3, -12); c.closePath(); c.fill();
+  c.fillStyle = '#f2d55c'; c.beginPath(); c.arc(-4, -10, 2, 0, TAU); c.arc(4, -10, 2, 0, TAU); c.fill();
+}
+function diver(c, t, glow){                // dive.html drawDiver, head up
+  c.fillStyle = glow; c.fillRect(-70, -70, 140, 140);
+  const kick = Math.sin(t * 0.006) * 3;
+  c.strokeStyle = '#2b3f41'; c.lineWidth = 4; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(-4, 10); c.lineTo(-6 + kick, 24); c.moveTo(4, 10); c.lineTo(6 - kick, 24); c.stroke();
+  c.fillStyle = '#1c2c2e'; c.beginPath(); c.ellipse(-6 + kick, 28, 4, 6, 0, 0, TAU); c.ellipse(6 - kick, 28, 4, 6, 0, 0, TAU); c.fill();
+  c.strokeStyle = '#6b4a2b'; c.lineWidth = 3.5;
+  c.beginPath(); c.moveTo(-8, -6); c.lineTo(-13, -18); c.moveTo(8, -6); c.lineTo(13, -18); c.stroke();
+  c.fillStyle = '#6b4a2b'; c.strokeStyle = '#3b2817'; c.lineWidth = 1.5;
+  c.beginPath(); c.ellipse(0, 1, 9, 13, 0, 0, TAU); c.fill(); c.stroke();
+  c.strokeStyle = '#c25cff'; c.lineWidth = 3; c.beginPath(); c.moveTo(-8, -5); c.lineTo(8, 6); c.stroke();
+  c.fillStyle = '#b08a3e'; c.strokeStyle = '#6e5420'; c.lineWidth = 1.5;
+  c.beginPath(); c.arc(0, -17, 7.5, 0, TAU); c.fill(); c.stroke();
+  c.fillStyle = '#14262a'; c.beginPath(); c.arc(0, -18, 4, 0, TAU); c.fill();
+  c.fillStyle = '#f2b544'; c.beginPath(); c.arc(12, -20, 3, 0, TAU); c.fill();
+  c.lineCap = 'butt';
+}
+function person(c, color, armsUp){         // throw.html drawPerson, feet at the origin
+  c.strokeStyle = '#2a2230'; c.lineWidth = 3.4; c.lineCap = 'round';
+  c.beginPath(); c.moveTo(-4, 0); c.lineTo(0, -15); c.lineTo(4, 0); c.stroke();
+  c.strokeStyle = color; c.lineWidth = 6; c.beginPath(); c.moveTo(0, -15); c.lineTo(0, -30); c.stroke();
+  c.lineWidth = 3; c.beginPath();
+  if (armsUp){ c.moveTo(0, -29); c.lineTo(-6, -42); c.moveTo(0, -29); c.lineTo(8, -42); }
+  else { c.moveTo(0, -29); c.lineTo(11, -20); c.moveTo(0, -29); c.lineTo(-10, -19); }
+  c.stroke(); c.lineCap = 'butt';
+  c.fillStyle = '#e2c6a0'; c.beginPath(); c.arc(0, -35.5, 5.5, 0, TAU); c.fill();
 }
 
-// ---------- update ----------
-function pop(g, text, x, y, color){ g.pops.push({ text, x, y, color, t:1.1 }); }
-function collectToken(g){
-  g.tokens++;
-  g.chain += g.helm.id === 'gilgamesh' ? 2 : 1;
-  g.combo = Math.min(8, 1 + Math.floor(g.chain / 2));
-  g.bestCombo = Math.max(g.bestCombo, g.combo);
-  const pts = Math.round(50 * g.combo * (g.helm.id === 'vaelor' ? 1.25 : 1) * (g.horn > 0 ? 2 : 1));
-  g.score += pts;
-  pop(g, '+' + pts + (g.combo > 1 ? '  ×' + g.combo : ''), g.x, SHIP_Y - 72, '#d9e4e8');
-  if (g.helm.id === 'davy'){
-    g.heal++;
-    if (g.heal >= 15 && g.hull < 3){ g.hull++; g.heal = 0; pop(g, 'Mended', g.x, SHIP_Y - 98, '#5cc8ff'); }
-  }
-}
-function collectPower(g, p){
-  const P = POWERS[p];
-  if (p === 'patch'){
-    if (g.hull < 3){ g.hull++; pop(g, 'Patched', g.x, SHIP_Y - 72, P.color); }
-    else { g.score += 250; pop(g, '+250  spare timber', g.x, SHIP_Y - 72, P.color); }
-    return;
-  }
-  if (p === 'wind') g.wind = P.secs;
-  if (p === 'lantern') g.lantern = P.secs;
-  if (p === 'hornpipe') g.horn = P.secs;
-  pop(g, P.name + '!', g.x, SHIP_Y - 72, P.color);
-}
-function weatherSquall(g){
-  const n = g.squall;
-  g.squall++; g.nextSquall += SQUALL_SECS; g.calm = CALM_SECS; g.calmLane = g.lane;
-  let reward;
-  if (g.hull < 3){ g.hull++; reward = '+1 hull'; }
-  else { g.score += 1000 * n; reward = '+' + fmt(1000 * n) + ' points'; }
-  g.banner = { title:'Squall ' + n + ' weathered', sub:reward, t:2.8 };
-}
-function hitShip(g){
-  if (g.wind > 0) return;
-  if (g.ward){ g.ward = false; g.inv = 1.2; pop(g, 'Ward holds', g.x, SHIP_Y - 72, '#8fa6ff'); return; }
-  g.hull--; g.chain = 0; g.combo = 1; g.inv = 1.5; g.shake = 0.4;
-  pop(g, pick(HIT_WORDS), g.x, SHIP_Y - 72, '#ff6b5c');
-  if (g.hull <= 0) endRun(g);
-}
-function makeBolt(){
-  const pts = [[rand(40, 320), 0]];
-  let y = 0;
-  while (y < rand(150, 260)){ y += rand(25, 55); const px = pts[pts.length - 1][0]; pts.push([clamp(px + rand(-34, 34), 10, 350), y]); }
+// ---------- scene: Weatherlight Run ----------
+const DASH = [6, 10], NODASH = [];
+const BOLTS = [0, 1, 2].map(k => {         // prebuilt so frames don't allocate
+  const pts = [hash(k * 9) * 260 + 50, 0];
+  for (let y = 0, i = 1; y < 96; i++){ y += 18 + hash(k * 9 + i) * 22; pts.push(Math.min(345, Math.max(15, pts[pts.length - 2] + (hash(k * 9 + i + 40) - 0.5) * 60)), y); }
   return pts;
-}
-function update(g, dt){
-  g.t += dt;
-  const d = diff(g), s2 = squeeze(g);
-  g.spd = 220 + 340 * d + 140 * s2;          // 220 → 560 by ~2:45, then → 700 by ~7:00
-  const sdt = g.spd * dt;
-  g.dist += sdt;
-  g.score += sdt / 10 * (g.helm.id === 'mcnalty' ? 0.85 : 1);
-  g.fogY = 40 + 200 * Math.min(1, g.t / 180) + 50 * clamp((g.t - 300) / 60, 0, 1);   // one more step down at 5 min
-
-  // the storm's rhythm: three small flashes, then the big one
-  g.beatT -= dt;
-  if (g.beatT <= 0){
-    const big = g.beat === 3;
-    g.flash = big ? 1 : 0.4;
-    if (big){ g.bigFlash = 0.45; g.bolt = makeBolt(); }
-    g.beat = (g.beat + 1) % 4;
-    g.beatT = g.beat === 0 ? rand(3.5, 6.5) : 0.5;
-  }
-  g.flash = Math.max(0, g.flash - dt * 3);
-  g.bigFlash = Math.max(0, g.bigFlash - dt);
-
-  g.x += (LANES[g.lane] - g.x) * Math.min(1, dt * 18);
-  g.inv = Math.max(0, g.inv - dt); g.shake = Math.max(0, g.shake - dt); g.hint = Math.max(0, g.hint - dt);
-  g.wind = Math.max(0, g.wind - dt); g.lantern = Math.max(0, g.lantern - dt); g.horn = Math.max(0, g.horn - dt);
-  g.calm = Math.max(0, g.calm - dt);
-  if (g.t >= g.nextSquall) weatherSquall(g);
-  if (g.banner){ g.banner.t -= dt; if (g.banner.t <= 0) g.banner = null; }
-
-  if (g.dist >= g.nextRow){ spawnRow(g); g.nextRow = g.dist + (270 - 120 * d - 20 * s2); }   // row gap 270 → 150 → 130 px
-
-  const shipW = g.helm.id === 'wren' ? 32 : 48, shipH = 62;
-  for (const e of g.ents){
-    if (e.kind === 'sahu' && e.warn > 0){ e.warn -= dt; e.y += sdt; continue; }   // ripple warning: keeps pace, then surges
-    e.y += sdt * (e.vmul || 1);
-    if (e.kind === 'cutter'){
-      if (!e.shifting && e.y > e.shiftAt) e.shifting = true;
-      if (e.shifting){ const dx = LANES[e.toLane] - e.x, step = 260 * dt; e.x += Math.abs(dx) < step ? dx : Math.sign(dx) * step; }
+});
+const storm = {
+  prep(c){
+    const sea = c.createLinearGradient(0, 0, 0, VH); sea.addColorStop(0, '#0b2428'); sea.addColorStop(1, '#061517');
+    const fog = c.createLinearGradient(0, 0, 0, 88);
+    fog.addColorStop(0, 'rgba(118,139,141,.85)'); fog.addColorStop(0.5, 'rgba(118,139,141,.62)'); fog.addColorStop(1, 'rgba(118,139,141,0)');
+    const glow = c.createRadialGradient(0, -30, 4, 0, -30, 80); glow.addColorStop(0, 'rgba(242,181,68,.42)'); glow.addColorStop(1, 'rgba(242,181,68,0)');
+    return { sea, fog, glow };
+  },
+  draw(c, t, g){
+    const scroll = t * 0.03, p = (t % 4800) / 4800;
+    let flash = 0, big = 0;                // three flickers, then the big strike
+    for (let q = 0.18; q < 0.6; q += 0.17) if (p > q && p < q + 0.025) flash = 0.6 * (1 - (p - q) / 0.025);
+    if (p > 0.74 && p < 0.86){ big = 1 - (p - 0.74) / 0.12; flash = Math.max(flash, big); }
+    c.fillStyle = g.sea; c.fillRect(0, 0, VW, VH);
+    c.strokeStyle = 'rgba(159,179,181,.09)'; c.lineWidth = 1; c.setLineDash(DASH); c.lineDashOffset = -(scroll % 16);
+    c.beginPath(); c.moveTo(120, 0); c.lineTo(120, VH); c.moveTo(240, 0); c.lineTo(240, VH); c.stroke(); c.setLineDash(NODASH);
+    c.strokeStyle = 'rgba(217,228,232,.13)'; c.lineWidth = 1.5;
+    const sp = 40, off = scroll % sp;
+    for (let k = -1; k * sp < VH + sp; k++){
+      const y = k * sp + off, seed = (Math.floor(scroll / sp) - k) % 997 + 997;
+      for (let j = 0; j < 3; j++){
+        const x = (seed * 73 + j * 127) % 330 + 15;
+        c.beginPath(); c.moveTo(x - 10, y); c.quadraticCurveTo(x - 4, y - 5, x, y); c.quadraticCurveTo(x + 4, y + 5, x + 10, y); c.stroke();
+      }
     }
-    if (e.kind === 'token' || e.kind === 'power') e.r += dt * 4;
-    if (e.y > H + 80){ e.dead = true; continue; }
-    if (Math.abs(e.x - g.x) < (e.w + shipW) / 2 && Math.abs(e.y - (SHIP_Y - 4)) < (e.h + shipH) / 2){
-      if (e.kind === 'token'){ e.dead = true; collectToken(g); }
-      else if (e.kind === 'power'){ e.dead = true; collectPower(g, e.p); }
-      else if (g.inv <= 0 && g.wind <= 0){ hitShip(g); if (g.over) break; }
+    const ry = (scroll + 40) % 260 - 40, cy = (scroll + 220) % 260 - 40;
+    c.fillStyle = 'rgba(217,228,232,.16)'; c.beginPath(); c.ellipse(60, ry + 5, 28, 19, 0, 0, TAU); c.fill();
+    rockShape(c, 60, ry, 22, 15, 0.37, 8);
+    c.save(); c.translate(300, cy); c.scale(0.6, 0.6); cutter(c); c.restore();
+    c.save(); c.translate(180, 118 + Math.sin(t * 0.0015) * 3); c.scale(0.72, 0.72); ship(c, g.glow); c.restore();
+    c.globalAlpha = 1 - Math.max(flash * 0.6, big); c.fillStyle = g.fog; c.fillRect(0, 0, VW, 88);
+    if (flash > 0){ c.globalAlpha = flash * 0.16; c.fillStyle = '#e6f0f5'; c.fillRect(0, 0, VW, VH); }
+    if (big > 0.1){
+      const b = BOLTS[Math.floor(t / 4800) % BOLTS.length];
+      c.globalAlpha = Math.min(1, big * 3); c.strokeStyle = '#fff'; c.lineWidth = 2.5; c.lineJoin = 'round';
+      c.beginPath(); c.moveTo(b[0], b[1]); for (let i = 2; i < b.length; i += 2) c.lineTo(b[i], b[i + 1]); c.stroke();
     }
+    c.globalAlpha = 1;
   }
-  g.ents = g.ents.filter(e => !e.dead);
-  for (const p of g.pops){ p.t -= dt; p.y -= 34 * dt; }
-  g.pops = g.pops.filter(p => p.t > 0);
-}
+};
 
-// ---------- render ----------
-function drawSea(scroll){
-  const gr = ctx.createLinearGradient(0, 0, 0, H);
-  gr.addColorStop(0, '#0b2428'); gr.addColorStop(1, '#061517');
-  ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
-  ctx.strokeStyle = 'rgba(159,179,181,.09)'; ctx.lineWidth = 1;
-  ctx.setLineDash([6, 10]); ctx.lineDashOffset = -(scroll % 16);
-  ctx.beginPath(); ctx.moveTo(120, 0); ctx.lineTo(120, H); ctx.moveTo(240, 0); ctx.lineTo(240, H); ctx.stroke();
-  ctx.setLineDash([]);
-  ctx.strokeStyle = 'rgba(217,228,232,.13)'; ctx.lineWidth = 1.5;
-  const sp = 52;
-  for (let k = Math.floor(-scroll / sp) - 1; k * sp + scroll < H + sp; k++){
-    const y = k * sp + scroll, seed = ((k % 997) + 997) % 997;
-    for (let j = 0; j < 3; j++){
-      const xx = ((seed * 73 + j * 127) % 330) + 15;
-      ctx.beginPath(); ctx.moveTo(xx - 10, y); ctx.quadraticCurveTo(xx - 4, y - 5, xx, y); ctx.quadraticCurveTo(xx + 4, y + 5, xx + 10, y); ctx.stroke();
+// ---------- scene: Crabber's Cove Dive ----------
+const cove = {
+  prep(c){
+    const sea = c.createLinearGradient(0, 0, 0, VH); sea.addColorStop(0, 'rgb(16,52,56)'); sea.addColorStop(1, 'rgb(3,12,13)');
+    const glow = c.createRadialGradient(0, 0, 4, 0, 0, 70); glow.addColorStop(0, 'rgba(242,181,68,.3)'); glow.addColorStop(1, 'rgba(242,181,68,0)');
+    return { sea, glow };
+  },
+  draw(c, t, g){
+    c.fillStyle = g.sea; c.fillRect(0, 0, VW, VH);
+    c.fillStyle = 'rgba(217,228,232,.05)';          // sun shafts
+    for (let i = 0; i < 3; i++){
+      const x0 = 120 + i * 80 + Math.sin(t * 0.0004 + i) * 12;
+      c.beginPath(); c.moveTo(x0, 0); c.lineTo(x0 + 26, 0); c.lineTo(x0 + 90, VH); c.lineTo(x0 + 30, VH); c.closePath(); c.fill();
     }
-  }
-}
-function drawShip(x, y, helm, alpha){
-  ctx.save(); ctx.globalAlpha = alpha;
-  const gr = ctx.createRadialGradient(x, y - 30, 4, x, y - 30, 80);
-  gr.addColorStop(0, 'rgba(242,181,68,.42)'); gr.addColorStop(1, 'rgba(242,181,68,0)');
-  ctx.fillStyle = gr; ctx.fillRect(x - 80, y - 110, 160, 160);
-  ctx.strokeStyle = 'rgba(217,228,232,.22)'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(x - 12, y + 36); ctx.lineTo(x - 22, y + 74); ctx.moveTo(x + 12, y + 36); ctx.lineTo(x + 22, y + 74); ctx.stroke();
-  ctx.fillStyle = '#6b4a2b'; ctx.strokeStyle = '#3b2817'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(x, y - 42); ctx.lineTo(x + 21, y + 2); ctx.lineTo(x + 16, y + 34); ctx.lineTo(x - 16, y + 34); ctx.lineTo(x - 21, y + 2); ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.strokeStyle = 'rgba(0,0,0,.28)'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(x, y - 34); ctx.lineTo(x, y + 30); ctx.stroke();
-  ctx.fillStyle = '#e6dcc4'; ctx.strokeStyle = '#b9ad92'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(x - 18, y - 6); ctx.quadraticCurveTo(x, y + 6, x + 18, y - 6); ctx.lineTo(x + 14, y + 18); ctx.quadraticCurveTo(x, y + 26, x - 14, y + 18); ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#3b2817'; ctx.beginPath(); ctx.arc(x, y + 2, 3, 0, 6.283); ctx.fill();
-  ctx.fillStyle = helm.color; ctx.beginPath(); ctx.moveTo(x, y - 14); ctx.lineTo(x + 15, y - 10); ctx.lineTo(x, y - 6); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#f2b544'; ctx.beginPath(); ctx.arc(x, y - 30, 3.5, 0, 6.283); ctx.fill();
-  ctx.restore();
-}
-function drawEnt(e){
-  const { x, y } = e;
-  if (e.kind === 'rock'){
-    ctx.fillStyle = 'rgba(217,228,232,.16)';
-    ctx.beginPath(); ctx.ellipse(x, y + 8, 44, 30, 0, 0, 6.283); ctx.fill();
-    ctx.fillStyle = '#263536'; ctx.strokeStyle = '#4a6264'; ctx.lineWidth = 2;
-    ctx.beginPath();
+    c.fillStyle = 'rgba(217,228,232,.22)';          // marine snow
+    for (let j = 0; j < 22; j++) c.fillRect(hash(j) * VW, (hash(j + 50) * VH + t * 0.008 * (1 + hash(j + 9))) % VH, 1.6, 1.6);
+    const sx = 318, sy = 54, sa = Math.PI * 0.83 + Math.sin(t * 0.0008) * 0.2, CA = 0.56;   // the sahuagin looks about
+    c.fillStyle = 'rgba(63,178,127,.16)'; c.strokeStyle = 'rgba(63,178,127,.45)'; c.lineWidth = 1.5;
+    c.beginPath(); c.moveTo(sx, sy); c.arc(sx, sy, 150, sa - CA, sa + CA); c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = 'rgba(40,120,75,.2)'; c.beginPath(); c.ellipse(92, 150, 54, 64, 0, 0, TAU); c.fill();
+    c.fillStyle = 'rgba(0,0,0,.25)'; c.beginPath(); c.ellipse(234, 134, 33, 19, 0, 0, TAU); c.fill();
+    rockShape(c, 234, 128, 31, 20, 0.61, 10);
+    c.fillStyle = '#3fb27f'; c.globalAlpha = 0.5;
+    c.beginPath(); c.ellipse(223, 117, 3, 8, 0.4, 0, TAU); c.ellipse(248, 120, 2.5, 6, -0.3, 0, TAU); c.fill(); c.globalAlpha = 1;
+    c.fillStyle = '#6b4a2b'; c.strokeStyle = '#3b2817'; c.lineWidth = 1.5;   // a locked chest by the rock
+    c.fillRect(272, 150, 26, 14); c.strokeRect(272, 150, 26, 14);
+    c.beginPath(); c.moveTo(272, 150); c.quadraticCurveTo(285, 140, 298, 150); c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = '#f2b544'; c.fillRect(282, 148, 6, 6);
+    c.fillStyle = '#152426'; c.strokeStyle = '#2c4143'; c.lineWidth = 1.5;   // the floor
+    c.beginPath(); c.moveTo(-10, VH + 10);
+    for (let i = 0; i <= 32; i++) c.lineTo(i * 12 - 10, 164 + (hash(i * 1.7) - 0.3) * 6);
+    c.lineTo(VW + 10, VH + 10); c.closePath(); c.fill(); c.stroke();
+    c.save(); c.globalAlpha = 0.55; c.translate(96, 116); c.rotate(Math.sin(t * 0.001) * 0.12); c.scale(0.62, 0.62); diver(c, t, g.glow); c.restore();
+    c.globalAlpha = 0.6; c.strokeStyle = '#d9e4e8'; c.lineWidth = 1;   // her breath rises
+    for (let i = 0; i < 3; i++){ const q = (t * 0.02 + i * 15) % 45; c.beginPath(); c.arc(97 + Math.sin(t * 0.005 + i) * 3, 100 - q, 1.4 + i * 0.5, 0, TAU); c.stroke(); }
+    c.globalAlpha = 1; c.lineCap = 'round'; c.lineWidth = 4.5;   // kelp fronds over her
     for (let i = 0; i < 8; i++){
-      const a = i / 8 * 6.283, r = 24 + 10 * Math.sin(e.seed * 20 + i * 3.1);
-      const px = x + Math.cos(a) * r * 1.35, py = y + Math.sin(a) * r * 0.95;
-      i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+      const u = i / 7 * 1.6 - 0.8, x = 92 + u * 54, hy = 64 * Math.sqrt(1 - u * u), top = 150 - hy * (0.75 + 0.25 * hash(i + 30));
+      const sw = Math.sin(t * 0.002 + i * 1.3) * 7;
+      c.strokeStyle = i % 2 ? 'rgba(63,160,100,.8)' : 'rgba(40,128,80,.85)';
+      c.beginPath(); c.moveTo(x, 150 + hy * 0.4); c.quadraticCurveTo(x - sw, 150 - hy * 0.3, x + sw, top); c.stroke();
     }
-    ctx.closePath(); ctx.fill(); ctx.stroke();
-  } else if (e.kind === 'cutter'){
-    ctx.strokeStyle = 'rgba(217,228,232,.2)'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(x - 10, y - 36); ctx.lineTo(x - 18, y - 70); ctx.moveTo(x + 10, y - 36); ctx.lineTo(x + 18, y - 70); ctx.stroke();
-    ctx.fillStyle = '#8c2a26'; ctx.strokeStyle = '#4d1512'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(x, y + 40); ctx.lineTo(x + 20, y - 4); ctx.lineTo(x + 14, y - 36); ctx.lineTo(x - 14, y - 36); ctx.lineTo(x - 20, y - 4); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#efe9d8'; ctx.strokeStyle = '#b9ad92'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(x - 16, y - 2); ctx.quadraticCurveTo(x, y - 14, x + 16, y - 2); ctx.lineTo(x + 12, y + 22); ctx.quadraticCurveTo(x, y + 12, x - 12, y + 22); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#f2b544'; ctx.beginPath(); ctx.moveTo(x, y + 6); ctx.lineTo(x - 14, y + 2); ctx.lineTo(x, y - 2); ctx.closePath(); ctx.fill();
-  } else if (e.kind === 'sahu'){
-    if (e.warn > 0){
-      const k = 1 - e.warn / 0.55;
-      ctx.strokeStyle = `rgba(63,178,127,${0.7 * (1 - k)})`; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.ellipse(x, 14, 10 + 30 * k, 4 + 10 * k, 0, 0, 6.283); ctx.stroke();
-      return;
+    c.lineCap = 'butt';
+    c.save(); c.translate(sx, sy); c.rotate(sa + Math.PI / 2); c.scale(0.8, 0.8); sahu(c); c.restore();
+  }
+};
+
+// ---------- scene: Throw the Rogue ----------
+const STARS = [];
+for (let i = 0; i < 18; i++) STARS.push(70 + hash(i + 3) * 280, 6 + hash(i + 70) * 90, hash(i + 120) > 0.6 ? 2 : 1.4, hash(i + 200) * TAU);
+const cliff = {
+  prep(c){
+    const sky = c.createLinearGradient(0, 0, 0, VH); sky.addColorStop(0, '#0a1626'); sky.addColorStop(0.6, '#0b2226'); sky.addColorStop(1, '#061517');
+    return { sky };
+  },
+  draw(c, t, g){
+    c.fillStyle = g.sky; c.fillRect(0, 0, VW, VH);
+    c.fillStyle = '#d9e4e8';
+    for (let i = 0; i < STARS.length; i += 4){ c.globalAlpha = 0.35 + 0.35 * Math.sin(t * 0.0012 + STARS[i + 3]); c.fillRect(STARS[i], STARS[i + 1], STARS[i + 2], STARS[i + 2]); }
+    c.globalAlpha = 1;
+    c.fillStyle = '#0d1f22';                        // the far headland
+    c.beginPath(); c.moveTo(VW, 70); c.lineTo(342, 92); c.lineTo(350, 118); c.lineTo(336, 150); c.lineTo(VW, 160); c.closePath(); c.fill();
+    c.fillStyle = 'rgba(10,42,46,.94)'; c.fillRect(0, 158, VW, VH - 158);   // the cove
+    c.strokeStyle = 'rgba(217,228,232,.16)'; c.lineWidth = 1.4;
+    for (let row = 0; row < 2; row++){
+      const y = 164 + row * 9; c.beginPath();
+      for (let x = 0; x <= VW; x += 8){ const yy = y + Math.sin(x * 0.05 + t * 0.002 + row) * 1.6; x ? c.lineTo(x, yy) : c.moveTo(x, yy); }
+      c.stroke();
     }
-    ctx.fillStyle = 'rgba(63,178,127,.18)';
-    ctx.beginPath(); ctx.ellipse(x, y + 10, 26, 9, 0, 0, 6.283); ctx.fill();
-    ctx.fillStyle = '#3fb27f'; ctx.strokeStyle = '#1c6b48'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(x - 12, y + 12); ctx.quadraticCurveTo(x - 4, y - 26, x + 6, y - 22); ctx.lineTo(x + 12, y + 12); ctx.closePath(); ctx.fill(); ctx.stroke();
-  } else if (e.kind === 'token'){
-    ctx.save(); ctx.translate(x, y); ctx.scale(Math.abs(Math.cos(e.r)) * 0.65 + 0.35, 1);
-    ctx.fillStyle = '#d9e4e8'; ctx.strokeStyle = '#8fa4aa'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(0, 0, 13, 0, 6.283); ctx.fill(); ctx.stroke();
-    ctx.strokeStyle = '#6f868c'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(0, 0, 8, 0, 6.283); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-5, 2); ctx.lineTo(5, -2); ctx.stroke();
-    ctx.restore();
-  } else if (e.kind === 'power'){
-    const P = POWERS[e.p], glow = 0.35 + 0.2 * Math.sin(e.r * 1.5);
-    const gr = ctx.createRadialGradient(x, y, 4, x, y, 30);
-    gr.addColorStop(0, P.color); gr.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.globalAlpha = glow; ctx.fillStyle = gr; ctx.fillRect(x - 30, y - 30, 60, 60); ctx.globalAlpha = 1;
-    ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(e.r * 0.5) * 0.15);
-    ctx.fillStyle = '#6b4a2b'; ctx.strokeStyle = '#3b2817'; ctx.lineWidth = 2;
-    ctx.fillRect(-14, -14, 28, 28); ctx.strokeRect(-14, -14, 28, 28);
-    ctx.strokeStyle = P.color; ctx.lineWidth = 2; ctx.strokeRect(-10, -10, 20, 20);
-    ctx.fillStyle = P.color; ctx.font = "700 19px 'Barlow Condensed', 'Arial Narrow', sans-serif";
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(P.glyph, 0, 1);
-    ctx.restore(); ctx.textBaseline = 'alphabetic';
-  }
-}
-function drawFog(g){
-  const vis = Math.max(g.bigFlash > 0 ? 1 : g.flash * 0.6, Math.min(1, g.lantern) * 0.9);
-  const a = 0.92 * (1 - vis);
-  const bottom = g.fogY + 90;
-  const gr = ctx.createLinearGradient(0, 0, 0, bottom);
-  gr.addColorStop(0, `rgba(118,139,141,${a})`); gr.addColorStop(0.55, `rgba(118,139,141,${a * 0.85})`); gr.addColorStop(1, 'rgba(118,139,141,0)');
-  ctx.fillStyle = gr; ctx.fillRect(0, 0, W, bottom);
-  if (g.flash > 0){ ctx.fillStyle = `rgba(230,240,245,${g.flash * 0.16})`; ctx.fillRect(0, 0, W, H); }
-  if (g.bolt && g.bigFlash > 0.1){
-    ctx.strokeStyle = `rgba(255,255,255,${Math.min(1, g.bigFlash * 3)})`; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
-    ctx.beginPath(); g.bolt.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke();
-  }
-}
-function drawPops(g){
-  ctx.font = "700 20px 'Barlow Condensed', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center';
-  for (const p of g.pops){
-    ctx.globalAlpha = Math.min(1, p.t); ctx.fillStyle = p.color;
-    ctx.fillText(p.text, p.x, p.y);
-  }
-  ctx.globalAlpha = 1;
-}
-function drawBanner(b){
-  ctx.save(); ctx.globalAlpha = Math.min(1, b.t / 0.5, (2.8 - b.t) / 0.3);
-  ctx.fillStyle = 'rgba(4,17,15,.72)'; ctx.fillRect(0, 250, W, 84);
-  ctx.textAlign = 'center'; ctx.fillStyle = '#e9efe9';
-  ctx.font = "400 30px 'IM Fell English', Georgia, serif"; ctx.fillText(b.title, W / 2, 288);
-  ctx.fillStyle = '#f2b544'; ctx.font = "700 20px 'Barlow Condensed', 'Arial Narrow', sans-serif"; ctx.fillText(b.sub, W / 2, 318);
-  ctx.restore();
-}
-function drawHint(g){
-  ctx.save(); ctx.globalAlpha = Math.min(1, g.hint / 1.5) * 0.7; ctx.fillStyle = '#e9efe9';
-  ctx.font = "500 17px 'Barlow Condensed', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center';
-  ctx.fillText('\u25C0 tap', 60, 612); ctx.fillText('tap \u25B6', 300, 612);
-  ctx.restore();
-}
-function render(g, now){
-  ctx.save();
-  ctx.clearRect(0, 0, W, H);
-  if (g && g.shake > 0){ const s = g.shake * 9; ctx.translate(rand(-s, s), rand(-s, s)); }
-  drawSea(g ? g.dist : now * 0.06);
-  if (g){
-    for (const e of g.ents) drawEnt(e);
-    const blink = g.inv > 0 ? (Math.sin(now * 0.04) > 0 ? 0.35 : 0.9) : 1;
-    drawShip(g.x, SHIP_Y, g.helm, blink);
-    if (g.wind > 0){
-      ctx.strokeStyle = `rgba(159,220,255,${0.35 + 0.25 * Math.sin(now * 0.012)})`; ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.ellipse(g.x, SHIP_Y - 4, 34, 50, 0, 0, 6.283); ctx.stroke();
+    c.fillStyle = '#3b2817';                        // the dock
+    for (let x = 206; x <= 330; x += 26) c.fillRect(x, 145, 5, 25);
+    c.fillStyle = '#6b4a2b'; c.fillRect(200, 140, 140, 6);
+    const tx = 292, top = 140 - 36;                 // the tent, pole as bullseye
+    c.fillStyle = '#d8cfb8'; c.strokeStyle = '#9d937a'; c.lineWidth = 1.5;
+    c.beginPath(); c.moveTo(tx - 24, 140); c.lineTo(tx, top); c.lineTo(tx + 24, 140); c.closePath(); c.fill(); c.stroke();
+    c.fillStyle = '#b8352f'; c.beginPath(); c.moveTo(tx - 13, 124); c.lineTo(tx + 13, 124); c.lineTo(tx + 15, 126.5); c.lineTo(tx - 15, 126.5); c.closePath(); c.fill();
+    c.fillStyle = '#1d1a14'; c.beginPath(); c.moveTo(tx - 5, 140); c.lineTo(tx, 128); c.lineTo(tx + 5, 140); c.closePath(); c.fill();
+    c.strokeStyle = '#3b2817'; c.lineWidth = 2; c.beginPath(); c.moveTo(tx, top); c.lineTo(tx, top - 10); c.stroke();
+    c.fillStyle = '#f2b544'; c.beginPath(); c.moveTo(tx, top - 10); c.lineTo(tx + 10 + Math.sin(t * 0.004) * 2, top - 7.5); c.lineTo(tx, top - 5); c.closePath(); c.fill();
+    c.save(); c.translate(0, 22);
+    c.fillStyle = '#1d2a2b'; c.strokeStyle = '#33494a'; c.lineWidth = 2;   // the cliff
+    c.beginPath(); c.moveTo(-2, 48); c.lineTo(40, 48); c.lineTo(46, 62); c.lineTo(41, 86); c.lineTo(46, 112); c.lineTo(42, 140); c.lineTo(46, 166); c.lineTo(44, VH + 2); c.lineTo(-2, VH + 2); c.closePath(); c.fill(); c.stroke();
+    c.strokeStyle = 'rgba(0,0,0,.35)'; c.lineWidth = 1.5;
+    c.beginPath(); c.moveTo(8, 80); c.lineTo(30, 96); c.moveTo(5, 122); c.lineTo(26, 134); c.moveTo(14, 156); c.lineTo(36, 170); c.stroke();
+    c.fillStyle = '#3c5a3a'; c.fillRect(-2, 45, 44, 4);
+    c.save(); c.translate(24, 46); c.scale(0.7, 0.7); person(c, '#ffd35c', true); c.restore();   // the thrower
+    c.restore();
+    const x0 = 30, y0 = 40, cx = 150, cy = -6, x1 = tx, y1 = top - 4, WU = 0.44;   // the arc toward the pole
+    const ph = (t * 0.0005) % 1;
+    c.fillStyle = '#f2b544';
+    for (let k = 0; k < 24; k++){
+      const u = (k + ph) / 24; if (Math.abs(u - WU) < 0.05) continue;
+      const a = 1 - u; c.globalAlpha = 0.85 * (1 - u * 0.55);
+      c.beginPath(); c.arc(a * a * x0 + 2 * a * u * cx + u * u * x1, a * a * y0 + 2 * a * u * cy + u * u * y1, 1.9, 0, TAU); c.fill();
     }
-    drawFog(g);
-    drawPops(g);
-    if (g.banner) drawBanner(g.banner);
-    if (g.hint > 0) drawHint(g);
-  } else {
-    drawShip(180, SHIP_Y + Math.sin(now * 0.0015) * 4, HELMS[helmIdx], 0.9);
+    c.globalAlpha = 1;
+    const a = 1 - WU, wx = a * a * x0 + 2 * a * WU * cx + WU * WU * x1, wy = a * a * y0 + 2 * a * WU * cy + WU * WU * y1;
+    c.save(); c.translate(wx, wy); c.rotate(t * 0.0025); c.scale(0.85, 0.85); c.translate(0, 20); person(c, '#c25cff', true); c.restore();   // Wren, tumbling
   }
-  ctx.restore();
-}
+};
 
-// ---------- HUD + screens ----------
-const hud = $('hud'), hudScore = $('hudScore'), hudCombo = $('hudCombo'), hudPower = $('hudPower'), hudHull = $('hudHull'), hudDist = $('hudDist');
-let lastHull = -1;
-function updateHud(g){
-  hudScore.textContent = fmt(g.score);
-  hudCombo.textContent = g.combo > 1 ? '\u00D7' + g.combo + ' combo' : '';
-  hudDist.textContent = (g.dist / 300).toFixed(1) + ' leagues \u00B7 squall ' + g.squall;
-  const act = [['wind', g.wind], ['lantern', g.lantern], ['hornpipe', g.horn]].filter(a => a[1] > 0);
-  hudPower.innerHTML = act.map(([k, t]) => `<span style="color:${POWERS[k].color}">${POWERS[k].name} ${Math.ceil(t)}s</span>`).join('<br>');
-  if (g.hull !== lastHull){
-    lastHull = g.hull;
-    [...hudHull.children].forEach((el, i) => el.classList.toggle('out', i >= g.hull));
-  }
-}
-function showScreen(id){
-  for (const s of ['title', 'howto', 'pause', 'over']) $(s).hidden = s !== id;
-  hud.hidden = !(id === null && state === 'run');
-}
-
-function renderHelms(){
-  const box = $('helms'); box.innerHTML = '';
-  HELMS.forEach((h, i) => {
-    const b = document.createElement('button');
-    b.className = 'helm'; b.type = 'button'; b.setAttribute('role', 'radio');
-    b.setAttribute('aria-checked', String(i === helmIdx));
-    b.style.borderLeftColor = i === helmIdx ? h.color : 'transparent';
-    b.innerHTML = `<b>${esc(h.name)}</b><span>${esc(h.sub)}</span>`;
-    b.addEventListener('click', () => { helmIdx = i; store.helm = h.id; saveStore(); renderHelms(); });
-    box.appendChild(b);
-  });
-  $('perkLine').innerHTML = HELMS[helmIdx].perk;
-}
-function renderBoard(){
-  const fleet = boardMode === 'fleet' && Array.isArray(fleetCache);
-  const list = fleet ? fleetCache : store.scores;
-  $('boardTitle').textContent = fleet ? 'The fleet' : 'Best on this device';
-  const tog = $('boardToggle');
-  tog.hidden = !LEADERBOARD_URL;
-  tog.textContent = fleet ? 'Show this device' : 'Show the fleet';
-  const ol = $('boardList'); ol.innerHTML = '';
-  if (!list.length){
-    const li = document.createElement('li'); li.className = 'empty';
-    li.textContent = fleet ? 'No fleet scores yet. Be the first on the board.' : 'No runs yet on this device. Hoist sail.';
-    ol.appendChild(li); return;
-  }
-  list.slice(0, 10).forEach((e, i) => {
-    const li = document.createElement('li');
-    li.innerHTML = `<span class="rk">${i + 1}</span><span class="nm">${esc(e.name)}</span><span class="hm">${esc(helmShort(e.helm))}</span><span class="sc">${fmt(e.score)}</span>`;
-    ol.appendChild(li);
-  });
-}
-async function loadFleet(){
-  if (!LEADERBOARD_URL) return;
-  try {
-    const r = await fetch(`${LEADERBOARD_URL}?game=${GAME_ID}`, { cache:'no-store' });
-    if (!r.ok) throw new Error('bad status');
-    fleetCache = await r.json(); boardMode = 'fleet'; renderBoard();
-  } catch { fleetCache = null; boardMode = 'local'; renderBoard(); }
-}
-
-// ---------- how to sail ----------
-const ICONS = { rock:[0.6, 4], cutter:[0.5, 15], sahu:[1.05, 7], token:[1.6, 0], power:[1.1, 0] };   // scale, y offset
-function drawIcons(){
-  const dpr = Math.min(window.devicePixelRatio || 1, 2), main = ctx;
-  for (const cv of document.querySelectorAll('canvas[data-icon]')){
-    const kind = cv.dataset.icon, [s, dy] = ICONS[kind], px = cv.clientWidth || 54;
-    cv.width = cv.height = Math.round(px * dpr);
-    ctx = cv.getContext('2d');
-    const k = cv.width / 64;
-    ctx.setTransform(k, 0, 0, k, 0, 0); ctx.clearRect(0, 0, 64, 64);
-    ctx.translate(32, 32 + dy); ctx.scale(s, s);
-    drawEnt({ kind, x:0, y:0, seed:0.37, r:0.6, warn:0, p:cv.dataset.p });
-  }
-  ctx = main;
-}
-function openHow(){
-  state = 'howto';
-  $('howPerks').innerHTML = HELMS.map(h => `<li style="border-color:${h.color}">${esc(h.name)} <span>(${esc(h.sub)})</span><br>${h.perk}</li>`).join('');
-  showScreen('howto'); $('howto').scrollTop = 0; drawIcons();
-}
-function closeHow(){ state = 'title'; showScreen('title'); }
-
-// ---------- flow ----------
-function start(){
-  G = newRun(); lastHull = -1; state = 'run';
-  showScreen(null); updateHud(G);
-}
-function pause(){ if (state !== 'run') return; state = 'pause'; showScreen('pause'); }
-function resume(){ if (state !== 'pause') return; state = 'run'; showScreen(null); }
-function toHarbour(){ G = null; state = 'title'; renderHelms(); renderBoard(); showScreen('title'); loadFleet(); }
-function endRun(g){
-  g.over = true; state = 'over';
-  const score = Math.floor(g.score);
-  const prevBest = store.scores.length ? store.scores[0].score : 0;
-  $('overKicker').textContent = LOCKER[g.helm.id] || "Davy Jones' locker.";
-  $('overScore').textContent = fmt(score);
-  $('overDist').textContent = (g.dist / 300).toFixed(1);
-  $('overTokens').textContent = g.tokens;
-  $('overCombo').textContent = '\u00D7' + g.bestCombo;
-  $('overSqualls').textContent = g.squall - 1;
-  $('overHelm').textContent = g.helm.name;
-  $('overBest').textContent = score > prevBest ? 'New best on this device.' : (prevBest ? 'Best on this device: ' + fmt(prevBest) : '');
-  $('nameIn').value = store.name || '';
-  $('postBtn').disabled = false;
-  $('postBtn').textContent = LEADERBOARD_URL ? 'Post to the fleet' : 'Save score';
-  $('postStatus').textContent = '';
-  showScreen('over');
-}
-async function saveScore(){
-  const g = G; if (!g || g.saved) return;
-  const name = $('nameIn').value.trim().slice(0, 12) || 'Nobody';
-  g.saved = true; store.name = name;
-  const entry = { game:GAME_ID, name, score:Math.floor(g.score), helm:g.helm.id, dist:Math.round(g.dist), tokens:g.tokens, ts:Date.now() };
-  store.scores.push(entry); store.scores.sort((a, b) => b.score - a.score); store.scores = store.scores.slice(0, 10); saveStore();
-  const btn = $('postBtn'), st = $('postStatus');
-  btn.disabled = true;
-  if (!LEADERBOARD_URL){ st.textContent = 'Saved on this device.'; return; }
-  st.textContent = 'Sending to the fleet\u2026';
-  try {
-    const r = await fetch(`${LEADERBOARD_URL}?game=${GAME_ID}`, { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(entry) });
-    if (!r.ok) throw new Error('bad status');
-    const j = await r.json();
-    if (Array.isArray(j.board)) fleetCache = j.board;
-    st.textContent = j.rank ? `Posted. You're #${j.rank} in the fleet.` : 'Posted to the fleet.';
-  } catch {
-    st.textContent = "Couldn't reach the fleet. Saved on this device.";
-  }
-}
-
-// ---------- input ----------
-const move = dir => { if (G && state === 'run') G.lane = clamp(G.lane + dir, 0, 2); };
-canvas.addEventListener('pointerdown', ev => {
-  if (state !== 'run') return;
-  const rect = canvas.getBoundingClientRect();
-  move((ev.clientX - rect.left) / rect.width < 0.5 ? -1 : 1);
+// ---------- banners: one shared loop ----------
+const SCENES = { storm, cove, cliff };
+const banners = [];
+document.querySelectorAll('canvas[data-scene]').forEach(cv => {
+  const sc = SCENES[cv.dataset.scene], c = sc && cv.getContext && cv.getContext('2d');
+  if (c) banners.push({ cv, c, sc, g:sc.prep(c), sx:1, sy:1, vis:true });
 });
-window.addEventListener('keydown', ev => {
-  if (ev.repeat) return;
-  const k = ev.key, tag = (document.activeElement || {}).tagName;
-  if (state === 'run'){
-    if (k === 'ArrowLeft' || k === 'a' || k === 'A'){ ev.preventDefault(); move(-1); }
-    else if (k === 'ArrowRight' || k === 'd' || k === 'D'){ ev.preventDefault(); move(1); }
-    else if (k === 'Escape' || k === 'p' || k === 'P') pause();
-  } else if (state === 'pause'){
-    if (k === 'Escape' || k === 'p' || k === 'P' || k === ' ' || k === 'Enter') resume();
-  } else if (state === 'howto'){
-    if (k === 'Escape'){ ev.preventDefault(); closeHow(); }
-  } else if (state === 'title'){
-    if ((k === ' ' || k === 'Enter') && tag !== 'BUTTON'){ ev.preventDefault(); start(); }
-  } else if (state === 'over'){
-    if (k === 'Enter' && tag === 'INPUT') saveScore();
-  }
-});
-document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
-window.addEventListener('blur', pause);
-
-$('startBtn').addEventListener('click', start);
-$('howBtn').addEventListener('click', openHow);
-$('howBack').addEventListener('click', closeHow);
-$('resumeBtn').addEventListener('click', resume);
-$('abandonBtn').addEventListener('click', toHarbour);
-$('postBtn').addEventListener('click', saveScore);
-$('againBtn').addEventListener('click', start);
-$('menuBtn').addEventListener('click', toHarbour);
-$('boardToggle').addEventListener('click', () => { boardMode = boardMode === 'fleet' ? 'local' : 'fleet'; renderBoard(); });
-
-// ---------- loop ----------
-let last = 0;
-function loop(ts){
-  const dt = Math.min(0.05, last ? (ts - last) / 1000 : 0); last = ts;
-  if (state === 'run' && G && !G.over){ update(G, dt); updateHud(G); }
-  render(state === 'title' || state === 'howto' ? null : G, ts);
-  requestAnimationFrame(loop);
+const still = typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : { matches:false };
+let raf = 0, last = 0;
+function fit(b){
+  const r = b.cv.getBoundingClientRect(), dpr = Math.min(2, window.devicePixelRatio || 1), w = r.width || VW, h = r.height || w / 2;
+  const pw = Math.max(1, Math.round(w * dpr)), ph = Math.max(1, Math.round(h * dpr));
+  if (b.cv.width !== pw || b.cv.height !== ph){ b.cv.width = pw; b.cv.height = ph; }
+  b.sx = pw / VW; b.sy = ph / VH;
 }
-toHarbour();
-requestAnimationFrame(loop);
+function paintBanner(b, t){ b.c.setTransform(b.sx, 0, 0, b.sy, 0, 0); b.sc.draw(b.c, t, b.g); }
+function frame(ts){
+  raf = 0;
+  if (ts - last >= 30){ last = ts; for (const b of banners) if (b.vis) paintBanner(b, ts); }   // ~30 fps is plenty for ambient art
+  schedule();
+}
+function schedule(){ if (!raf && !still.matches && !document.hidden && banners.some(b => b.vis)) raf = requestAnimationFrame(frame); }
+function stop(){ if (raf) cancelAnimationFrame(raf); raf = 0; }
+function refresh(){                        // resizing clears a canvas, so repaint straight away
+  const t = still.matches ? STILL_T : performance.now();
+  for (const b of banners){ fit(b); paintBanner(b, t); }
+  schedule();
+}
+if (banners.length){
+  refresh();
+  if (typeof ResizeObserver === 'function'){ const ro = new ResizeObserver(refresh); banners.forEach(b => ro.observe(b.cv)); }
+  else window.addEventListener('resize', refresh);
+  if (typeof IntersectionObserver === 'function'){
+    const io = new IntersectionObserver(es => { for (const e of es){ const b = banners.find(x => x.cv === e.target); if (b) b.vis = e.isIntersecting; } schedule(); });
+    banners.forEach(b => io.observe(b.cv));
+  }
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); else schedule(); });
+  const onMotion = () => { stop(); refresh(); };
+  if (still.addEventListener) still.addEventListener('change', onMotion); else if (still.addListener) still.addListener(onMotion);
+}
 })();
 </script>
 </body>

@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+<meta name="color-scheme" content="dark">
+<title>Weatherlight Run</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Barlow+Condensed:wght@500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --sea:#071a1c; --sea-deep:#04110f; --fog:#9fb3b5; --lantern:#f2b544;
+  --crown:#b8352f; --fin:#3fb27f; --mithril:#d9e4e8; --wood:#6b4a2b;
+  --ink:#e9efe9; --dim:#8da3a5; --line:rgba(159,179,181,.28);
+  --display:'IM Fell English','Iowan Old Style','Palatino Linotype',Georgia,serif;
+  --ui:'Barlow Condensed','Arial Narrow','Helvetica Neue',Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --ink:#e9efe9; } }
+:root[data-theme="dark"]{ --ink:#e9efe9; }
+html{ scroll-padding-top:env(safe-area-inset-top,0px); }
+html,body{ height:100%; margin:0; }
+body{
+  background:var(--sea); color:var(--ink); font-family:var(--ui);
+  overflow:hidden; touch-action:none; -webkit-user-select:none; user-select:none;
+  -webkit-tap-highlight-color:transparent;
+}
+#stage{ position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
+#frame{ position:relative; font-size:16px; }
+canvas{ display:block; touch-action:none; background:var(--sea); }
+
+.screen{
+  position:absolute; inset:0; display:flex; flex-direction:column; gap:.6em;
+  padding:7% 7% 5%; overflow:auto;
+  background:linear-gradient(180deg, rgba(4,17,15,.80), rgba(4,17,15,.93));
+}
+.screen[hidden]{ display:none; }
+.kicker{ margin:0; font:italic 400 1em/1.2 var(--display); color:var(--dim); }
+h1{ margin:0; font:400 2.5em/1 var(--display); letter-spacing:-.01em; }
+h2{ margin:0; font:400 2em/1 var(--display); }
+.lede{ margin:0; font:500 1em/1.3 var(--ui); color:var(--ink); max-width:22em; }
+.lede em{ font-family:var(--display); font-style:italic; }
+
+.helms{ display:grid; grid-template-columns:repeat(3,1fr); gap:.4em; margin-top:.3em; }
+.helm{
+  appearance:none; border:1px solid var(--line); background:rgba(255,255,255,.035); color:var(--ink);
+  text-align:left; padding:.45em .5em; border-left:.3em solid transparent; cursor:pointer; font-family:var(--ui);
+}
+.helm b{ display:block; font-weight:700; font-size:.95em; line-height:1.1; }
+.helm span{ display:block; color:var(--dim); font-size:.78em; line-height:1.2; }
+.helm[aria-checked="true"]{ background:rgba(255,255,255,.08); border-color:var(--line); }
+.helm:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid var(--lantern); outline-offset:2px; }
+.perk{ margin:0; min-height:2.4em; font-size:.9em; line-height:1.2; color:var(--dim); }
+.perk b{ color:var(--ink); font-weight:700; }
+
+button.primary{
+  appearance:none; border:0; background:var(--lantern); color:#1a1200;
+  font:700 1.15em/1 var(--ui); padding:.65em 1em; cursor:pointer;
+}
+button.primary:disabled{ opacity:.5; cursor:default; }
+button.quiet{
+  appearance:none; border:1px solid var(--line); background:transparent; color:var(--ink);
+  font:500 1em/1 var(--ui); padding:.55em .9em; cursor:pointer;
+}
+.row{ display:flex; gap:.5em; align-items:center; }
+
+.board{ flex:1; min-height:5.5em; display:flex; flex-direction:column; border-top:1px solid var(--line); padding-top:.5em; }
+.boardHead{ display:flex; justify-content:space-between; align-items:baseline; gap:.5em; }
+.boardHead span{ font:italic 400 1em/1 var(--display); color:var(--dim); }
+.boardHead button{ appearance:none; border:0; background:none; color:var(--lantern); font:500 .9em/1 var(--ui); cursor:pointer; padding:0; }
+ol{ list-style:none; margin:.3em 0 0; padding:0; overflow:auto; }
+ol li{
+  display:grid; grid-template-columns:1.5em 1fr auto 4.2em; gap:.5em; align-items:baseline;
+  padding:.22em 0; font-size:.95em; border-bottom:1px dotted rgba(159,179,181,.14);
+}
+ol li .rk{ color:var(--dim); }
+ol li .nm{ font-weight:700; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+ol li .hm{ color:var(--dim); font-size:.85em; }
+ol li .sc{ text-align:right; font-variant-numeric:tabular-nums; }
+ol li.empty{ display:block; color:var(--dim); border:0; }
+.hint{ margin:0; font-size:.85em; color:var(--dim); line-height:1.25; }
+
+.scoreBig{ display:flex; align-items:baseline; gap:.4em; margin:.1em 0; }
+.scoreBig #overScore{ font:700 3.4em/1 var(--ui); font-variant-numeric:tabular-nums; }
+.scoreBig .lbl{ font:italic 400 1.1em/1 var(--display); color:var(--dim); }
+dl.stats{ display:grid; grid-template-columns:auto 1fr; gap:.15em .8em; margin:0; font-size:.95em; }
+dl.stats dt{ color:var(--dim); }
+dl.stats dd{ margin:0; font-weight:700; font-variant-numeric:tabular-nums; }
+.best{ margin:0; color:var(--lantern); font:italic 400 1.05em/1.2 var(--display); min-height:1.2em; }
+label{ display:block; font-size:.9em; color:var(--dim); }
+input{
+  width:100%; box-sizing:border-box; margin-top:.25em; padding:.5em .6em;
+  font:700 1.1em/1 var(--ui); color:var(--ink); background:rgba(255,255,255,.06);
+  border:1px solid var(--line); border-radius:0;
+}
+.status{ margin:0; min-height:1.2em; font-size:.9em; color:var(--dim); }
+.row .primary{ flex:1; }
+.hint a{ color:var(--lantern); }
+
+.guide{ display:flex; flex-direction:column; gap:.55em; }
+.guide h3{ margin:.3em 0 0; font:italic 400 1.15em/1.1 var(--display); color:var(--lantern); }
+.guide p{ margin:0; font-size:.95em; line-height:1.3; }
+.guide p b{ font-weight:700; }
+.guide em{ font-family:var(--display); font-style:italic; }
+.item{ display:grid; grid-template-columns:3.4em 1fr; gap:.6em; align-items:center; }
+.item canvas{ width:3.4em; height:3.4em; background:#0b2428; border:1px solid var(--line); }
+ul.perks{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:.35em; }
+ul.perks li{ border-left:.3em solid; padding-left:.5em; font-size:.92em; line-height:1.25; }
+ul.perks li span{ color:var(--dim); }
+
+#hud{ position:absolute; inset:0; pointer-events:none; padding:3.5% 5%; display:flex; justify-content:space-between; align-items:flex-start; }
+#hud[hidden]{ display:none; }
+#hudScore{ font:700 2.1em/1 var(--ui); font-variant-numeric:tabular-nums; text-shadow:0 1px 6px rgba(0,0,0,.6); }
+#hudCombo{ font:700 1.05em/1.2 var(--ui); color:var(--lantern); min-height:1.2em; }
+#hudPower{ font:700 .95em/1.2 var(--ui); min-height:1.2em; text-shadow:0 1px 6px rgba(0,0,0,.6); }
+.hudR{ text-align:right; }
+#hudHull{ font-size:1.3em; letter-spacing:.15em; line-height:1; text-shadow:0 1px 6px rgba(0,0,0,.6); }
+#hudHull i{ font-style:normal; color:var(--lantern); }
+#hudHull i.out{ color:rgba(233,239,233,.22); }
+#hudDist{ font:500 .95em/1.4 var(--ui); color:var(--dim); font-variant-numeric:tabular-nums; }
+
+@media (prefers-reduced-motion: reduce){ .screen{ transition:none; } }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="frame">
+    <canvas id="game" width="360" height="640" aria-label="Weatherlight Run, a lane-dodging sailing game"></canvas>
+
+    <div id="hud" hidden>
+      <div class="hudL"><div id="hudScore">0</div><div id="hudCombo"></div><div id="hudPower"></div></div>
+      <div class="hudR"><div id="hudHull"><i>&#9679;</i><i>&#9679;</i><i>&#9679;</i></div><div id="hudDist">0.0 leagues</div></div>
+    </div>
+
+    <section id="title" class="screen" aria-labelledby="gameTitle">
+      <p class="kicker">A Saltmarsh arcade</p>
+      <h1 id="gameTitle">Weatherlight Run</h1>
+      <p class="lede">Sail the <em>Weatherlight</em> into the storm. Dodge the crown, hoard the mithril, read the lightning.</p>
+      <div class="helms" id="helms" role="radiogroup" aria-label="Choose a helmsman"></div>
+      <p class="perk" id="perkLine"></p>
+      <div class="row"><button class="primary" id="startBtn">Hoist sail</button><button class="quiet" id="howBtn">How to sail</button></div>
+      <div class="board">
+        <div class="boardHead"><span id="boardTitle">Best on this device</span><button id="boardToggle" hidden>Show the fleet</button></div>
+        <ol id="boardList"></ol>
+      </div>
+      <p class="hint">Tap left or right of the ship to change lanes. Also in the arcade: <a href="dive.html">Crabber's Cove Dive</a></p>
+    </section>
+
+    <section id="howto" class="screen" hidden aria-labelledby="howTitle">
+      <p class="kicker">Ship's articles</p>
+      <h2 id="howTitle">How to sail</h2>
+      <div class="guide">
+        <h3>At the helm</h3>
+        <p>Tap left or right of the ship to slide one lane that way. On a keyboard, use the arrow keys or A and D. Esc or P pauses, and the game pauses itself if you switch apps.</p>
+        <p>The <em>Weatherlight</em> has three hull points, shown top right. Each hit costs one, then the ship blinks for a moment and can't be hit again. Lose all three and the run is over.</p>
+        <h3>In the water</h3>
+        <div class="item"><canvas data-icon="rock"></canvas><p><b>Rocks.</b> They sit still in their lane. Sometimes two lanes are blocked at once, but there's always a lane you can reach in time.</p></div>
+        <div class="item"><canvas data-icon="cutter"></canvas><p><b>Crown cutters.</b> From about 25 seconds in. Each starts in one lane and swings into the next partway down, so watch both lanes.</p></div>
+        <div class="item"><canvas data-icon="sahu"></canvas><p><b>Sahuagin.</b> From about a minute in. A green ripple marks where one will surface, then it surges at you faster than the current.</p></div>
+        <div class="item"><canvas data-icon="token"></canvas><p><b>Hornpipe tokens.</b> Mithril, worth 50 points times your combo. They often come in lines of three, and they never hurt.</p></div>
+        <h3>Combo</h3>
+        <p>Every two tokens raise your combo by one, up to &times;8 (shown under your score). Any hit drops it back to &times;1.</p>
+        <h3>Ship's stores</h3>
+        <p>Every 20 seconds or so a glowing crate floats down an open lane. Sail through it to pick it up. Timed ones show a countdown under your combo.</p>
+        <div class="item"><canvas data-icon="power" data-p="patch"></canvas><p><b>Patch kit.</b> Restores one hull point. At full hull it's worth 250 points instead.</p></div>
+        <div class="item"><canvas data-icon="power" data-p="wind"></canvas><p><b>Fair wind.</b> Nothing can hurt you for 5 seconds.</p></div>
+        <div class="item"><canvas data-icon="power" data-p="lantern"></canvas><p><b>Storm lantern.</b> Burns the fog away for 8 seconds.</p></div>
+        <div class="item"><canvas data-icon="power" data-p="hornpipe"></canvas><p><b>Hornpipe.</b> Tokens are worth double for 10 seconds.</p></div>
+        <h3>Squalls</h3>
+        <p>Every 90 seconds you weather a squall. You get a reward (a hull point back if you're damaged, otherwise 1,000 points times the squall number), then a few seconds of calm water with a line of tokens before the next squall hits. The squall count shows next to your leagues.</p>
+        <h3>The storm</h3>
+        <p>Fog rolls down from the top and thickens as the run goes on, hiding what's coming. The lightning keeps a rhythm: three small flickers, then a big strike that lights the whole sea for a moment. Learn the beat and read the water on the big one.</p>
+        <p>The sea speeds up for the first three minutes or so, then keeps creeping faster until something gives.</p>
+        <h3>Scoring</h3>
+        <p>30 points for every league sailed, plus tokens. Pick a helmsman on the title screen; each has one perk.</p>
+        <ul class="perks" id="howPerks"></ul>
+      </div>
+      <button class="primary" id="howBack">Back to harbour</button>
+    </section>
+
+    <section id="pause" class="screen" hidden>
+      <p class="kicker">Becalmed.</p>
+      <h2>Paused</h2>
+      <div class="row"><button class="primary" id="resumeBtn">Resume</button><button class="quiet" id="abandonBtn">Abandon run</button></div>
+    </section>
+
+    <section id="over" class="screen" hidden>
+      <p class="kicker" id="overKicker">Davy Jones' locker.</p>
+      <div class="scoreBig"><span id="overScore">0</span><span class="lbl">points</span></div>
+      <dl class="stats">
+        <dt>Leagues</dt><dd id="overDist"></dd>
+        <dt>Tokens</dt><dd id="overTokens"></dd>
+        <dt>Best combo</dt><dd id="overCombo"></dd>
+        <dt>Squalls weathered</dt><dd id="overSqualls"></dd>
+        <dt>Helm</dt><dd id="overHelm"></dd>
+      </dl>
+      <p class="best" id="overBest"></p>
+      <label>Your name on the board<input id="nameIn" maxlength="12" autocomplete="off" spellcheck="false" placeholder="Wren"></label>
+      <button class="primary" id="postBtn">Save score</button>
+      <p class="status" id="postStatus"></p>
+      <div class="row"><button class="quiet" id="againBtn">Sail again</button><button class="quiet" id="menuBtn">Back to harbour</button></div>
+    </section>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+
+// ---------- config ----------
+// Claude Code: after deploying worker/worker.js, set this to the Worker URL,
+// e.g. 'https://saltmarsh-arcade.<your-subdomain>.workers.dev'. Empty = scores stay on this device.
+const LEADERBOARD_URL = 'https://saltmarsh-arcade.cbingham222.workers.dev';
+const GAME_ID = 'weatherlight-run';
+const STORE = 'wlr.v1';
+
+const W = 360, H = 640;
+const LANES = [60, 180, 300];
+const SHIP_Y = 540;
+
+const HELMS = [
+  { id:'caspian',   name:'Caspian Dreadtide',     sub:"Parker's wizard",   color:'#8fa6ff', perk:'<b>Arcane ward.</b> The first hit of the run is absorbed.' },
+  { id:'vaelor',    name:'Vaelor Borean',         sub:"Joe's sorcerer",    color:'#ff9a5c', perk:'<b>Draconic greed.</b> Tokens are worth 25% more.' },
+  { id:'davy',      name:'Davy Jones',            sub:"Hales's druid",     color:'#5cc8ff', perk:'<b>Mending.</b> Every 15 tokens restores one hull.' },
+  { id:'wren',      name:'Wren Pike',             sub:"Nick's rogue",      color:'#c25cff', perk:'<b>Evasion.</b> A narrower hull slips through tighter gaps.' },
+  { id:'mcnalty',   name:'Midknight McNalty',     sub:"Jesse's ranger",    color:'#9ad36b', perk:'<b>Steady hand.</b> The storm builds 20% slower; distance scores 15% less.' },
+  { id:'gilgamesh', name:'Gilgamesh Atlas Orion', sub:"Chandler's bard",   color:'#ffd35c', perk:'<b>Inspiration.</b> Combo climbs twice as fast.' },
+];
+const LOCKER = {
+  davy:"Your own locker, Davy.", gilgamesh:"The rhythm stopped.", mcnalty:"Punishment served.",
+  wren:"No coin on the seabed.", caspian:"The ward didn't hold.", vaelor:"Draconic, and still drowned."
+};
+const HIT_WORDS = ['Hull breach', 'Timbers!', 'Hard a-lee!', 'Brace!'];
+// ship's stores (power-ups) and squalls (stages)
+const POWERS = {
+  patch:    { name:'Patch kit',     color:'#e6dcc4', glyph:'+' },
+  wind:     { name:'Fair wind',     color:'#9fdcff', glyph:'\u2248', secs:5 },
+  lantern:  { name:'Storm lantern', color:'#f2b544', glyph:'\u2600', secs:8 },
+  hornpipe: { name:'Hornpipe',      color:'#ffd35c', glyph:'\u266A', secs:10 },
+};
+const POWER_GAP = [5000, 8000];   // px of sea between crates (~15–25 s)
+const SQUALL_SECS = 90;           // a squall is weathered every this many seconds
+const CALM_SECS = 4;              // hazard-free stretch after each squall
+
+// ---------- helpers ----------
+const $ = id => document.getElementById(id);
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const helmOf = id => HELMS.find(h => h.id === id);
+const helmShort = id => { const h = helmOf(id); return h ? h.name.split(' ')[0] : '—'; };
+const fmt = n => Math.floor(n).toLocaleString();
+
+// ---------- storage (per device) ----------
+function loadStore(){ try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch { return {}; } }
+function saveStore(){ try { localStorage.setItem(STORE, JSON.stringify(store)); } catch {} }
+const store = loadStore();
+if (!Array.isArray(store.scores)) store.scores = [];
+
+// ---------- canvas sizing ----------
+const canvas = $('game'), frame = $('frame'), stage = $('stage');
+let ctx = canvas.getContext('2d');   // swapped briefly to draw the how-to icons
+let scale = 1;
+function resize(){
+  const bw = stage.clientWidth || W, bh = stage.clientHeight || H;
+  scale = Math.max(0.1, Math.min(bw / W, bh / H));
+  const cw = Math.floor(W * scale), ch = Math.floor(H * scale);
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.floor(cw * dpr); canvas.height = Math.floor(ch * dpr);
+  canvas.style.width = cw + 'px'; canvas.style.height = ch + 'px';
+  frame.style.width = cw + 'px'; frame.style.height = ch + 'px';
+  frame.style.fontSize = (16 * scale) + 'px';
+  ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0);
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ---------- state ----------
+let state = 'title';           // title | howto | run | pause | over
+let helmIdx = Math.max(0, HELMS.findIndex(h => h.id === store.helm));
+let G = null;
+let fleetCache = null, boardMode = 'local';
+
+function newRun(){
+  const helm = HELMS[helmIdx];
+  return {
+    helm, lane:1, x:LANES[1], hull:3, score:0, dist:0, tokens:0, chain:0, combo:1, bestCombo:1,
+    spd:220, t:0, ents:[], pops:[], nextRow:180, lastSafe:[0,1,2], inv:0,
+    ward: helm.id === 'caspian', heal:0, shake:0, flash:0, bigFlash:0, bolt:null,
+    fogY:60, beat:0, beatT:2.5, hint:3.5, over:false, saved:false,
+    nextPower:3000, wind:0, lantern:0, horn:0, squall:1, nextSquall:SQUALL_SECS, calm:0, banner:null
+  };
+}
+const diff = g => Math.min(1, g.dist / (g.helm.id === 'mcnalty' ? 75000 : 60000));   // full storm at ~2:45 of sailing
+// second ramp ("the squeeze"): past the plateau, speed creeps to a hard cap and rows pack tighter, so runs end
+const squeeze = g => { const k = g.helm.id === 'mcnalty' ? 1.25 : 1; return clamp((g.dist - 60000 * k) / (170000 * k), 0, 1); };
+
+// ---------- spawning ----------
+function addEnt(g, h, y){
+  const e = { kind:h.kind, lane:h.lane, x:LANES[h.lane], y, dead:false };
+  if (h.kind === 'rock')   { e.w = 70; e.h = 56; e.seed = Math.random(); }
+  if (h.kind === 'cutter') { e.w = 44; e.h = 76; e.toLane = h.toLane; e.shiftAt = rand(110, 330); e.shifting = false; }
+  if (h.kind === 'sahu')   { e.w = 34; e.h = 38; e.warn = 0.55; e.vmul = 1.3; }   // >1.3 lets it catch the row ahead and block all three lanes
+  if (h.kind === 'token')  { e.w = 30; e.h = 30; e.r = Math.random() * 6.28; }
+  if (h.kind === 'power')  { e.w = 34; e.h = 34; e.p = h.p; e.r = Math.random() * 6.28; }
+  g.ents.push(e);
+}
+function pickPower(g){
+  const w = { patch: g.hull < 3 ? 1.2 : 0.3, wind:1, lantern: g.t > 40 ? 1 : 0.3, hornpipe:1 };
+  let r = Math.random() * Object.values(w).reduce((a, b) => a + b, 0);
+  for (const k in w){ r -= w[k]; if (r <= 0) return k; }
+  return 'wind';
+}
+function spawnRow(g){
+  const d = diff(g);
+  const y = -90;
+  if (g.calm > 0){                                 // calm water after a squall: a line of tokens, no hazards
+    const l = clamp((g.calmLane ?? 1) + pick([-1, 0, 0, 1]), 0, 2);
+    g.calmLane = l;
+    addEnt(g, { kind:'token', lane:l }, y); addEnt(g, { kind:'token', lane:l }, y - 60);
+    g.lastSafe = [0, 1, 2];
+    return;
+  }
+  const pTwo = 0.12 + 0.5 * d;
+  const pCut = g.dist > 6000 ? 0.22 + 0.2 * d : 0;      // crown cutters after ~25 s
+  const pSahu = g.dist > 15000 ? 0.18 + 0.22 * d : 0;   // sahuagin after ~1 min
+  for (let k = 0; k < 8; k++){
+    const haz = [], occupied = new Set();
+    const lanes = [0, 1, 2].sort(() => Math.random() - 0.5);
+    if (Math.random() < pCut){
+      const a = lanes[0], b = a === 1 ? pick([0, 2]) : 1;
+      haz.push({ kind:'cutter', lane:a, toLane:b }); occupied.add(a); occupied.add(b);
+    } else {
+      const n = Math.random() < pTwo ? 2 : 1;
+      for (let i = 0; i < n; i++){ haz.push({ kind: Math.random() < pSahu ? 'sahu' : 'rock', lane:lanes[i] }); occupied.add(lanes[i]); }
+    }
+    const safe = [0, 1, 2].filter(l => !occupied.has(l));
+    if (!safe.length) continue;
+    if (!safe.some(s => g.lastSafe.some(p => Math.abs(p - s) <= 1))) continue;   // always a reachable lane
+    for (const h of haz) addEnt(g, h, y);
+    if (g.dist >= g.nextPower){
+      addEnt(g, { kind:'power', lane:pick(safe), p:pickPower(g) }, y);
+      g.nextPower = g.dist + rand(POWER_GAP[0], POWER_GAP[1]);
+    } else if (Math.random() < 0.6){
+      const tl = pick(safe);
+      addEnt(g, { kind:'token', lane:tl }, y);
+      if (Math.random() < 0.35){ addEnt(g, { kind:'token', lane:tl }, y - 45); addEnt(g, { kind:'token', lane:tl }, y - 90); }
+    }
+    g.lastSafe = safe;
+    return;
+  }
+  const l = pick([0, 1, 2]);                      // fallback: one rock, always passable
+  addEnt(g, { kind:'rock', lane:l }, y);
+  g.lastSafe = [0, 1, 2].filter(x => x !== l);
+}
+
+// ---------- update ----------
+function pop(g, text, x, y, color){ g.pops.push({ text, x, y, color, t:1.1 }); }
+function collectToken(g){
+  g.tokens++;
+  g.chain += g.helm.id === 'gilgamesh' ? 2 : 1;
+  g.combo = Math.min(8, 1 + Math.floor(g.chain / 2));
+  g.bestCombo = Math.max(g.bestCombo, g.combo);
+  const pts = Math.round(50 * g.combo * (g.helm.id === 'vaelor' ? 1.25 : 1) * (g.horn > 0 ? 2 : 1));
+  g.score += pts;
+  pop(g, '+' + pts + (g.combo > 1 ? '  ×' + g.combo : ''), g.x, SHIP_Y - 72, '#d9e4e8');
+  if (g.helm.id === 'davy'){
+    g.heal++;
+    if (g.heal >= 15 && g.hull < 3){ g.hull++; g.heal = 0; pop(g, 'Mended', g.x, SHIP_Y - 98, '#5cc8ff'); }
+  }
+}
+function collectPower(g, p){
+  const P = POWERS[p];
+  if (p === 'patch'){
+    if (g.hull < 3){ g.hull++; pop(g, 'Patched', g.x, SHIP_Y - 72, P.color); }
+    else { g.score += 250; pop(g, '+250  spare timber', g.x, SHIP_Y - 72, P.color); }
+    return;
+  }
+  if (p === 'wind') g.wind = P.secs;
+  if (p === 'lantern') g.lantern = P.secs;
+  if (p === 'hornpipe') g.horn = P.secs;
+  pop(g, P.name + '!', g.x, SHIP_Y - 72, P.color);
+}
+function weatherSquall(g){
+  const n = g.squall;
+  g.squall++; g.nextSquall += SQUALL_SECS; g.calm = CALM_SECS; g.calmLane = g.lane;
+  let reward;
+  if (g.hull < 3){ g.hull++; reward = '+1 hull'; }
+  else { g.score += 1000 * n; reward = '+' + fmt(1000 * n) + ' points'; }
+  g.banner = { title:'Squall ' + n + ' weathered', sub:reward, t:2.8 };
+}
+function hitShip(g){
+  if (g.wind > 0) return;
+  if (g.ward){ g.ward = false; g.inv = 1.2; pop(g, 'Ward holds', g.x, SHIP_Y - 72, '#8fa6ff'); return; }
+  g.hull--; g.chain = 0; g.combo = 1; g.inv = 1.5; g.shake = 0.4;
+  pop(g, pick(HIT_WORDS), g.x, SHIP_Y - 72, '#ff6b5c');
+  if (g.hull <= 0) endRun(g);
+}
+function makeBolt(){
+  const pts = [[rand(40, 320), 0]];
+  let y = 0;
+  while (y < rand(150, 260)){ y += rand(25, 55); const px = pts[pts.length - 1][0]; pts.push([clamp(px + rand(-34, 34), 10, 350), y]); }
+  return pts;
+}
+function update(g, dt){
+  g.t += dt;
+  const d = diff(g), s2 = squeeze(g);
+  g.spd = 220 + 340 * d + 140 * s2;          // 220 → 560 by ~2:45, then → 700 by ~7:00
+  const sdt = g.spd * dt;
+  g.dist += sdt;
+  g.score += sdt / 10 * (g.helm.id === 'mcnalty' ? 0.85 : 1);
+  g.fogY = 40 + 200 * Math.min(1, g.t / 180) + 50 * clamp((g.t - 300) / 60, 0, 1);   // one more step down at 5 min
+
+  // the storm's rhythm: three small flashes, then the big one
+  g.beatT -= dt;
+  if (g.beatT <= 0){
+    const big = g.beat === 3;
+    g.flash = big ? 1 : 0.4;
+    if (big){ g.bigFlash = 0.45; g.bolt = makeBolt(); }
+    g.beat = (g.beat + 1) % 4;
+    g.beatT = g.beat === 0 ? rand(3.5, 6.5) : 0.5;
+  }
+  g.flash = Math.max(0, g.flash - dt * 3);
+  g.bigFlash = Math.max(0, g.bigFlash - dt);
+
+  g.x += (LANES[g.lane] - g.x) * Math.min(1, dt * 18);
+  g.inv = Math.max(0, g.inv - dt); g.shake = Math.max(0, g.shake - dt); g.hint = Math.max(0, g.hint - dt);
+  g.wind = Math.max(0, g.wind - dt); g.lantern = Math.max(0, g.lantern - dt); g.horn = Math.max(0, g.horn - dt);
+  g.calm = Math.max(0, g.calm - dt);
+  if (g.t >= g.nextSquall) weatherSquall(g);
+  if (g.banner){ g.banner.t -= dt; if (g.banner.t <= 0) g.banner = null; }
+
+  if (g.dist >= g.nextRow){ spawnRow(g); g.nextRow = g.dist + (270 - 120 * d - 20 * s2); }   // row gap 270 → 150 → 130 px
+
+  const shipW = g.helm.id === 'wren' ? 32 : 48, shipH = 62;
+  for (const e of g.ents){
+    if (e.kind === 'sahu' && e.warn > 0){ e.warn -= dt; e.y += sdt; continue; }   // ripple warning: keeps pace, then surges
+    e.y += sdt * (e.vmul || 1);
+    if (e.kind === 'cutter'){
+      if (!e.shifting && e.y > e.shiftAt) e.shifting = true;
+      if (e.shifting){ const dx = LANES[e.toLane] - e.x, step = 260 * dt; e.x += Math.abs(dx) < step ? dx : Math.sign(dx) * step; }
+    }
+    if (e.kind === 'token' || e.kind === 'power') e.r += dt * 4;
+    if (e.y > H + 80){ e.dead = true; continue; }
+    if (Math.abs(e.x - g.x) < (e.w + shipW) / 2 && Math.abs(e.y - (SHIP_Y - 4)) < (e.h + shipH) / 2){
+      if (e.kind === 'token'){ e.dead = true; collectToken(g); }
+      else if (e.kind === 'power'){ e.dead = true; collectPower(g, e.p); }
+      else if (g.inv <= 0 && g.wind <= 0){ hitShip(g); if (g.over) break; }
+    }
+  }
+  g.ents = g.ents.filter(e => !e.dead);
+  for (const p of g.pops){ p.t -= dt; p.y -= 34 * dt; }
+  g.pops = g.pops.filter(p => p.t > 0);
+}
+
+// ---------- render ----------
+function drawSea(scroll){
+  const gr = ctx.createLinearGradient(0, 0, 0, H);
+  gr.addColorStop(0, '#0b2428'); gr.addColorStop(1, '#061517');
+  ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = 'rgba(159,179,181,.09)'; ctx.lineWidth = 1;
+  ctx.setLineDash([6, 10]); ctx.lineDashOffset = -(scroll % 16);
+  ctx.beginPath(); ctx.moveTo(120, 0); ctx.lineTo(120, H); ctx.moveTo(240, 0); ctx.lineTo(240, H); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.strokeStyle = 'rgba(217,228,232,.13)'; ctx.lineWidth = 1.5;
+  const sp = 52;
+  for (let k = Math.floor(-scroll / sp) - 1; k * sp + scroll < H + sp; k++){
+    const y = k * sp + scroll, seed = ((k % 997) + 997) % 997;
+    for (let j = 0; j < 3; j++){
+      const xx = ((seed * 73 + j * 127) % 330) + 15;
+      ctx.beginPath(); ctx.moveTo(xx - 10, y); ctx.quadraticCurveTo(xx - 4, y - 5, xx, y); ctx.quadraticCurveTo(xx + 4, y + 5, xx + 10, y); ctx.stroke();
+    }
+  }
+}
+function drawShip(x, y, helm, alpha){
+  ctx.save(); ctx.globalAlpha = alpha;
+  const gr = ctx.createRadialGradient(x, y - 30, 4, x, y - 30, 80);
+  gr.addColorStop(0, 'rgba(242,181,68,.42)'); gr.addColorStop(1, 'rgba(242,181,68,0)');
+  ctx.fillStyle = gr; ctx.fillRect(x - 80, y - 110, 160, 160);
+  ctx.strokeStyle = 'rgba(217,228,232,.22)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(x - 12, y + 36); ctx.lineTo(x - 22, y + 74); ctx.moveTo(x + 12, y + 36); ctx.lineTo(x + 22, y + 74); ctx.stroke();
+  ctx.fillStyle = '#6b4a2b'; ctx.strokeStyle = '#3b2817'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(x, y - 42); ctx.lineTo(x + 21, y + 2); ctx.lineTo(x + 16, y + 34); ctx.lineTo(x - 16, y + 34); ctx.lineTo(x - 21, y + 2); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = 'rgba(0,0,0,.28)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(x, y - 34); ctx.lineTo(x, y + 30); ctx.stroke();
+  ctx.fillStyle = '#e6dcc4'; ctx.strokeStyle = '#b9ad92'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x - 18, y - 6); ctx.quadraticCurveTo(x, y + 6, x + 18, y - 6); ctx.lineTo(x + 14, y + 18); ctx.quadraticCurveTo(x, y + 26, x - 14, y + 18); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#3b2817'; ctx.beginPath(); ctx.arc(x, y + 2, 3, 0, 6.283); ctx.fill();
+  ctx.fillStyle = helm.color; ctx.beginPath(); ctx.moveTo(x, y - 14); ctx.lineTo(x + 15, y - 10); ctx.lineTo(x, y - 6); ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#f2b544'; ctx.beginPath(); ctx.arc(x, y - 30, 3.5, 0, 6.283); ctx.fill();
+  ctx.restore();
+}
+function drawEnt(e){
+  const { x, y } = e;
+  if (e.kind === 'rock'){
+    ctx.fillStyle = 'rgba(217,228,232,.16)';
+    ctx.beginPath(); ctx.ellipse(x, y + 8, 44, 30, 0, 0, 6.283); ctx.fill();
+    ctx.fillStyle = '#263536'; ctx.strokeStyle = '#4a6264'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i < 8; i++){
+      const a = i / 8 * 6.283, r = 24 + 10 * Math.sin(e.seed * 20 + i * 3.1);
+      const px = x + Math.cos(a) * r * 1.35, py = y + Math.sin(a) * r * 0.95;
+      i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+    }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+  } else if (e.kind === 'cutter'){
+    ctx.strokeStyle = 'rgba(217,228,232,.2)'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x - 10, y - 36); ctx.lineTo(x - 18, y - 70); ctx.moveTo(x + 10, y - 36); ctx.lineTo(x + 18, y - 70); ctx.stroke();
+    ctx.fillStyle = '#8c2a26'; ctx.strokeStyle = '#4d1512'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x, y + 40); ctx.lineTo(x + 20, y - 4); ctx.lineTo(x + 14, y - 36); ctx.lineTo(x - 14, y - 36); ctx.lineTo(x - 20, y - 4); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#efe9d8'; ctx.strokeStyle = '#b9ad92'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x - 16, y - 2); ctx.quadraticCurveTo(x, y - 14, x + 16, y - 2); ctx.lineTo(x + 12, y + 22); ctx.quadraticCurveTo(x, y + 12, x - 12, y + 22); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#f2b544'; ctx.beginPath(); ctx.moveTo(x, y + 6); ctx.lineTo(x - 14, y + 2); ctx.lineTo(x, y - 2); ctx.closePath(); ctx.fill();
+  } else if (e.kind === 'sahu'){
+    if (e.warn > 0){
+      const k = 1 - e.warn / 0.55;
+      ctx.strokeStyle = `rgba(63,178,127,${0.7 * (1 - k)})`; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.ellipse(x, 14, 10 + 30 * k, 4 + 10 * k, 0, 0, 6.283); ctx.stroke();
+      return;
+    }
+    ctx.fillStyle = 'rgba(63,178,127,.18)';
+    ctx.beginPath(); ctx.ellipse(x, y + 10, 26, 9, 0, 0, 6.283); ctx.fill();
+    ctx.fillStyle = '#3fb27f'; ctx.strokeStyle = '#1c6b48'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(x - 12, y + 12); ctx.quadraticCurveTo(x - 4, y - 26, x + 6, y - 22); ctx.lineTo(x + 12, y + 12); ctx.closePath(); ctx.fill(); ctx.stroke();
+  } else if (e.kind === 'token'){
+    ctx.save(); ctx.translate(x, y); ctx.scale(Math.abs(Math.cos(e.r)) * 0.65 + 0.35, 1);
+    ctx.fillStyle = '#d9e4e8'; ctx.strokeStyle = '#8fa4aa'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 0, 13, 0, 6.283); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#6f868c'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(0, 0, 8, 0, 6.283); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-5, 2); ctx.lineTo(5, -2); ctx.stroke();
+    ctx.restore();
+  } else if (e.kind === 'power'){
+    const P = POWERS[e.p], glow = 0.35 + 0.2 * Math.sin(e.r * 1.5);
+    const gr = ctx.createRadialGradient(x, y, 4, x, y, 30);
+    gr.addColorStop(0, P.color); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalAlpha = glow; ctx.fillStyle = gr; ctx.fillRect(x - 30, y - 30, 60, 60); ctx.globalAlpha = 1;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(e.r * 0.5) * 0.15);
+    ctx.fillStyle = '#6b4a2b'; ctx.strokeStyle = '#3b2817'; ctx.lineWidth = 2;
+    ctx.fillRect(-14, -14, 28, 28); ctx.strokeRect(-14, -14, 28, 28);
+    ctx.strokeStyle = P.color; ctx.lineWidth = 2; ctx.strokeRect(-10, -10, 20, 20);
+    ctx.fillStyle = P.color; ctx.font = "700 19px 'Barlow Condensed', 'Arial Narrow', sans-serif";
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(P.glyph, 0, 1);
+    ctx.restore(); ctx.textBaseline = 'alphabetic';
+  }
+}
+function drawFog(g){
+  const vis = Math.max(g.bigFlash > 0 ? 1 : g.flash * 0.6, Math.min(1, g.lantern) * 0.9);
+  const a = 0.92 * (1 - vis);
+  const bottom = g.fogY + 90;
+  const gr = ctx.createLinearGradient(0, 0, 0, bottom);
+  gr.addColorStop(0, `rgba(118,139,141,${a})`); gr.addColorStop(0.55, `rgba(118,139,141,${a * 0.85})`); gr.addColorStop(1, 'rgba(118,139,141,0)');
+  ctx.fillStyle = gr; ctx.fillRect(0, 0, W, bottom);
+  if (g.flash > 0){ ctx.fillStyle = `rgba(230,240,245,${g.flash * 0.16})`; ctx.fillRect(0, 0, W, H); }
+  if (g.bolt && g.bigFlash > 0.1){
+    ctx.strokeStyle = `rgba(255,255,255,${Math.min(1, g.bigFlash * 3)})`; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+    ctx.beginPath(); g.bolt.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])); ctx.stroke();
+  }
+}
+function drawPops(g){
+  ctx.font = "700 20px 'Barlow Condensed', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center';
+  for (const p of g.pops){
+    ctx.globalAlpha = Math.min(1, p.t); ctx.fillStyle = p.color;
+    ctx.fillText(p.text, p.x, p.y);
+  }
+  ctx.globalAlpha = 1;
+}
+function drawBanner(b){
+  ctx.save(); ctx.globalAlpha = Math.min(1, b.t / 0.5, (2.8 - b.t) / 0.3);
+  ctx.fillStyle = 'rgba(4,17,15,.72)'; ctx.fillRect(0, 250, W, 84);
+  ctx.textAlign = 'center'; ctx.fillStyle = '#e9efe9';
+  ctx.font = "400 30px 'IM Fell English', Georgia, serif"; ctx.fillText(b.title, W / 2, 288);
+  ctx.fillStyle = '#f2b544'; ctx.font = "700 20px 'Barlow Condensed', 'Arial Narrow', sans-serif"; ctx.fillText(b.sub, W / 2, 318);
+  ctx.restore();
+}
+function drawHint(g){
+  ctx.save(); ctx.globalAlpha = Math.min(1, g.hint / 1.5) * 0.7; ctx.fillStyle = '#e9efe9';
+  ctx.font = "500 17px 'Barlow Condensed', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center';
+  ctx.fillText('\u25C0 tap', 60, 612); ctx.fillText('tap \u25B6', 300, 612);
+  ctx.restore();
+}
+function render(g, now){
+  ctx.save();
+  ctx.clearRect(0, 0, W, H);
+  if (g && g.shake > 0){ const s = g.shake * 9; ctx.translate(rand(-s, s), rand(-s, s)); }
+  drawSea(g ? g.dist : now * 0.06);
+  if (g){
+    for (const e of g.ents) drawEnt(e);
+    const blink = g.inv > 0 ? (Math.sin(now * 0.04) > 0 ? 0.35 : 0.9) : 1;
+    drawShip(g.x, SHIP_Y, g.helm, blink);
+    if (g.wind > 0){
+      ctx.strokeStyle = `rgba(159,220,255,${0.35 + 0.25 * Math.sin(now * 0.012)})`; ctx.lineWidth = 2.5;
+      ctx.beginPath(); ctx.ellipse(g.x, SHIP_Y - 4, 34, 50, 0, 0, 6.283); ctx.stroke();
+    }
+    drawFog(g);
+    drawPops(g);
+    if (g.banner) drawBanner(g.banner);
+    if (g.hint > 0) drawHint(g);
+  } else {
+    drawShip(180, SHIP_Y + Math.sin(now * 0.0015) * 4, HELMS[helmIdx], 0.9);
+  }
+  ctx.restore();
+}
+
+// ---------- HUD + screens ----------
+const hud = $('hud'), hudScore = $('hudScore'), hudCombo = $('hudCombo'), hudPower = $('hudPower'), hudHull = $('hudHull'), hudDist = $('hudDist');
+let lastHull = -1;
+function updateHud(g){
+  hudScore.textContent = fmt(g.score);
+  hudCombo.textContent = g.combo > 1 ? '\u00D7' + g.combo + ' combo' : '';
+  hudDist.textContent = (g.dist / 300).toFixed(1) + ' leagues \u00B7 squall ' + g.squall;
+  const act = [['wind', g.wind], ['lantern', g.lantern], ['hornpipe', g.horn]].filter(a => a[1] > 0);
+  hudPower.innerHTML = act.map(([k, t]) => `<span style="color:${POWERS[k].color}">${POWERS[k].name} ${Math.ceil(t)}s</span>`).join('<br>');
+  if (g.hull !== lastHull){
+    lastHull = g.hull;
+    [...hudHull.children].forEach((el, i) => el.classList.toggle('out', i >= g.hull));
+  }
+}
+function showScreen(id){
+  for (const s of ['title', 'howto', 'pause', 'over']) $(s).hidden = s !== id;
+  hud.hidden = !(id === null && state === 'run');
+}
+
+function renderHelms(){
+  const box = $('helms'); box.innerHTML = '';
+  HELMS.forEach((h, i) => {
+    const b = document.createElement('button');
+    b.className = 'helm'; b.type = 'button'; b.setAttribute('role', 'radio');
+    b.setAttribute('aria-checked', String(i === helmIdx));
+    b.style.borderLeftColor = i === helmIdx ? h.color : 'transparent';
+    b.innerHTML = `<b>${esc(h.name)}</b><span>${esc(h.sub)}</span>`;
+    b.addEventListener('click', () => { helmIdx = i; store.helm = h.id; saveStore(); renderHelms(); });
+    box.appendChild(b);
+  });
+  $('perkLine').innerHTML = HELMS[helmIdx].perk;
+}
+function renderBoard(){
+  const fleet = boardMode === 'fleet' && Array.isArray(fleetCache);
+  const list = fleet ? fleetCache : store.scores;
+  $('boardTitle').textContent = fleet ? 'The fleet' : 'Best on this device';
+  const tog = $('boardToggle');
+  tog.hidden = !LEADERBOARD_URL;
+  tog.textContent = fleet ? 'Show this device' : 'Show the fleet';
+  const ol = $('boardList'); ol.innerHTML = '';
+  if (!list.length){
+    const li = document.createElement('li'); li.className = 'empty';
+    li.textContent = fleet ? 'No fleet scores yet. Be the first on the board.' : 'No runs yet on this device. Hoist sail.';
+    ol.appendChild(li); return;
+  }
+  list.slice(0, 10).forEach((e, i) => {
+    const li = document.createElement('li');
+    li.innerHTML = `<span class="rk">${i + 1}</span><span class="nm">${esc(e.name)}</span><span class="hm">${esc(helmShort(e.helm))}</span><span class="sc">${fmt(e.score)}</span>`;
+    ol.appendChild(li);
+  });
+}
+async function loadFleet(){
+  if (!LEADERBOARD_URL) return;
+  try {
+    const r = await fetch(`${LEADERBOARD_URL}?game=${GAME_ID}`, { cache:'no-store' });
+    if (!r.ok) throw new Error('bad status');
+    fleetCache = await r.json(); boardMode = 'fleet'; renderBoard();
+  } catch { fleetCache = null; boardMode = 'local'; renderBoard(); }
+}
+
+// ---------- how to sail ----------
+const ICONS = { rock:[0.6, 4], cutter:[0.5, 15], sahu:[1.05, 7], token:[1.6, 0], power:[1.1, 0] };   // scale, y offset
+function drawIcons(){
+  const dpr = Math.min(window.devicePixelRatio || 1, 2), main = ctx;
+  for (const cv of document.querySelectorAll('canvas[data-icon]')){
+    const kind = cv.dataset.icon, [s, dy] = ICONS[kind], px = cv.clientWidth || 54;
+    cv.width = cv.height = Math.round(px * dpr);
+    ctx = cv.getContext('2d');
+    const k = cv.width / 64;
+    ctx.setTransform(k, 0, 0, k, 0, 0); ctx.clearRect(0, 0, 64, 64);
+    ctx.translate(32, 32 + dy); ctx.scale(s, s);
+    drawEnt({ kind, x:0, y:0, seed:0.37, r:0.6, warn:0, p:cv.dataset.p });
+  }
+  ctx = main;
+}
+function openHow(){
+  state = 'howto';
+  $('howPerks').innerHTML = HELMS.map(h => `<li style="border-color:${h.color}">${esc(h.name)} <span>(${esc(h.sub)})</span><br>${h.perk}</li>`).join('');
+  showScreen('howto'); $('howto').scrollTop = 0; drawIcons();
+}
+function closeHow(){ state = 'title'; showScreen('title'); }
+
+// ---------- flow ----------
+function start(){
+  G = newRun(); lastHull = -1; state = 'run';
+  showScreen(null); updateHud(G);
+}
+function pause(){ if (state !== 'run') return; state = 'pause'; showScreen('pause'); }
+function resume(){ if (state !== 'pause') return; state = 'run'; showScreen(null); }
+function toHarbour(){ G = null; state = 'title'; renderHelms(); renderBoard(); showScreen('title'); loadFleet(); }
+function endRun(g){
+  g.over = true; state = 'over';
+  const score = Math.floor(g.score);
+  const prevBest = store.scores.length ? store.scores[0].score : 0;
+  $('overKicker').textContent = LOCKER[g.helm.id] || "Davy Jones' locker.";
+  $('overScore').textContent = fmt(score);
+  $('overDist').textContent = (g.dist / 300).toFixed(1);
+  $('overTokens').textContent = g.tokens;
+  $('overCombo').textContent = '\u00D7' + g.bestCombo;
+  $('overSqualls').textContent = g.squall - 1;
+  $('overHelm').textContent = g.helm.name;
+  $('overBest').textContent = score > prevBest ? 'New best on this device.' : (prevBest ? 'Best on this device: ' + fmt(prevBest) : '');
+  $('nameIn').value = store.name || '';
+  $('postBtn').disabled = false;
+  $('postBtn').textContent = LEADERBOARD_URL ? 'Post to the fleet' : 'Save score';
+  $('postStatus').textContent = '';
+  showScreen('over');
+}
+async function saveScore(){
+  const g = G; if (!g || g.saved) return;
+  const name = $('nameIn').value.trim().slice(0, 12) || 'Nobody';
+  g.saved = true; store.name = name;
+  const entry = { game:GAME_ID, name, score:Math.floor(g.score), helm:g.helm.id, dist:Math.round(g.dist), tokens:g.tokens, ts:Date.now() };
+  store.scores.push(entry); store.scores.sort((a, b) => b.score - a.score); store.scores = store.scores.slice(0, 10); saveStore();
+  const btn = $('postBtn'), st = $('postStatus');
+  btn.disabled = true;
+  if (!LEADERBOARD_URL){ st.textContent = 'Saved on this device.'; return; }
+  st.textContent = 'Sending to the fleet\u2026';
+  try {
+    const r = await fetch(`${LEADERBOARD_URL}?game=${GAME_ID}`, { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(entry) });
+    if (!r.ok) throw new Error('bad status');
+    const j = await r.json();
+    if (Array.isArray(j.board)) fleetCache = j.board;
+    st.textContent = j.rank ? `Posted. You're #${j.rank} in the fleet.` : 'Posted to the fleet.';
+  } catch {
+    st.textContent = "Couldn't reach the fleet. Saved on this device.";
+  }
+}
+
+// ---------- input ----------
+const move = dir => { if (G && state === 'run') G.lane = clamp(G.lane + dir, 0, 2); };
+canvas.addEventListener('pointerdown', ev => {
+  if (state !== 'run') return;
+  const rect = canvas.getBoundingClientRect();
+  move((ev.clientX - rect.left) / rect.width < 0.5 ? -1 : 1);
+});
+window.addEventListener('keydown', ev => {
+  if (ev.repeat) return;
+  const k = ev.key, tag = (document.activeElement || {}).tagName;
+  if (state === 'run'){
+    if (k === 'ArrowLeft' || k === 'a' || k === 'A'){ ev.preventDefault(); move(-1); }
+    else if (k === 'ArrowRight' || k === 'd' || k === 'D'){ ev.preventDefault(); move(1); }
+    else if (k === 'Escape' || k === 'p' || k === 'P') pause();
+  } else if (state === 'pause'){
+    if (k === 'Escape' || k === 'p' || k === 'P' || k === ' ' || k === 'Enter') resume();
+  } else if (state === 'howto'){
+    if (k === 'Escape'){ ev.preventDefault(); closeHow(); }
+  } else if (state === 'title'){
+    if ((k === ' ' || k === 'Enter') && tag !== 'BUTTON'){ ev.preventDefault(); start(); }
+  } else if (state === 'over'){
+    if (k === 'Enter' && tag === 'INPUT') saveScore();
+  }
+});
+document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+window.addEventListener('blur', pause);
+
+$('startBtn').addEventListener('click', start);
+$('howBtn').addEventListener('click', openHow);
+$('howBack').addEventListener('click', closeHow);
+$('resumeBtn').addEventListener('click', resume);
+$('abandonBtn').addEventListener('click', toHarbour);
+$('postBtn').addEventListener('click', saveScore);
+$('againBtn').addEventListener('click', start);
+$('menuBtn').addEventListener('click', toHarbour);
+$('boardToggle').addEventListener('click', () => { boardMode = boardMode === 'fleet' ? 'local' : 'fleet'; renderBoard(); });
+
+// ---------- loop ----------
+let last = 0;
+function loop(ts){
+  const dt = Math.min(0.05, last ? (ts - last) / 1000 : 0); last = ts;
+  if (state === 'run' && G && !G.over){ update(G, dt); updateHud(G); }
+  render(state === 'title' || state === 'howto' ? null : G, ts);
+  requestAnimationFrame(loop);
+}
+toHarbour();
+requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

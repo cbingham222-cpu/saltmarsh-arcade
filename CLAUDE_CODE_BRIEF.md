@@ -8,10 +8,15 @@ Ship **Weatherlight Run** at a public link with a **shared, account-free leaderb
 
 ## What's in this repo
 
+> **Layout update (Oct 2026):** `index.html` is now the arcade homepage (three game cards, each with its live top 3). Weatherlight Run moved, unchanged, to `weatherlight.html`; where the phases below say `index.html` for the game, read `weatherlight.html`. The rule "don't edit the game except its `LEADERBOARD_URL` line" now applies to `weatherlight.html`.
+
 ```
-index.html              The game. Self-contained; loads two Google Fonts, nothing else external.
+index.html              The arcade homepage: links to the three games, top 3 from each board.
+weatherlight.html       Weatherlight Run (game one, board id weatherlight-run). Self-contained; two Google Fonts.
+dive.html               Crabber's Cove Dive (game two, board id crabbers-cove-dive).
+throw.html              Throw the Rogue (game three, board id throw-the-rogue; built in a claude.ai chat, bundles matter-js 0.20.0).
 worker/worker.js        Cloudflare Worker: GET/POST scores to KV, keyed by ?game=<id>. Optional Discord webhook.
-worker/wrangler.toml    Worker config. KV namespace id and CORS origin are placeholders.
+worker/wrangler.toml    Worker config (KV namespace id, CORS origin locked to the Pages origin).
 .gitignore
 CLAUDE_CODE_BRIEF.md    This file.
 ```
@@ -79,7 +84,7 @@ Game ↔ API contract (already implemented on both sides):
 
 Ship's stores (power-ups) and squalls (stages) were added at Chris's request; their knobs (`POWERS`, `POWER_GAP`, `SQUALL_SECS`, `CALM_SECS`) sit just below `HIT_WORDS`. Speed, spawn and fog curves are unchanged.
 
-Ship sits at y=540 on a 640-tall field. Knobs live near the top of the script in `index.html`: `diff` (first ramp), `squeeze` (second ramp), the `g.spd` line, the `g.fogY` line, and the `g.nextRow` line. McNalty's perk scales both ramps by 1.25.
+Ship sits at y=540 on a 640-tall field. Knobs live near the top of the script in `weatherlight.html` (formerly `index.html`): `diff` (first ramp), `squeeze` (second ramp), the `g.spd` line, the `g.fogY` line, and the `g.nextRow` line. McNalty's perk scales both ramps by 1.25.
 
 ## Known limits (tell Chris if they bite)
 
