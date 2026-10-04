@@ -30,7 +30,7 @@ body{
 }
 #stage{ position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center; }
 #frame{ position:relative; font-size:16px; }
-canvas{ display:block; touch-action:none; background:var(--sea); }
+canvas{ display:block; touch-action:none; -webkit-touch-callout:none; background:var(--sea); }
 
 .screen{
   position:absolute; inset:0; display:flex; flex-direction:column; gap:.6em;
@@ -123,33 +123,26 @@ ul.perks li span{ color:var(--dim); }
 #hudAirFill.low{ background:#ff6b5c; }
 #hudAirNeed{ position:absolute; top:-.3em; bottom:-.3em; width:2px; margin-left:-1px; background:var(--lantern); box-shadow:0 0 4px rgba(0,0,0,.8); }
 #hudDepth{ font:500 .95em/1.4 var(--ui); color:var(--dim); font-variant-numeric:tabular-nums; }
-#surfBtn{
-  position:absolute; left:50%; bottom:4%; transform:translateX(-50%); pointer-events:auto;
-  font-size:1em; padding:.6em 1.1em; box-shadow:0 2px 10px rgba(0,0,0,.5);
-}
-#surfBtn:disabled{ opacity:.75; }
-
 @media (prefers-reduced-motion: reduce){ .screen{ transition:none; } }
 </style>
 </head>
 <body>
 <div id="stage">
   <div id="frame">
-    <canvas id="game" width="360" height="640" aria-label="Crabber's Cove Dive, a push-your-luck diving game"></canvas>
+    <canvas id="game" width="360" height="640" aria-label="Crabber's Cove Dive, a one-breath stealth diving game"></canvas>
 
     <div id="hud" hidden>
       <div class="hudL"><div id="hudScore">0</div><div id="hudLbl">gold carried</div><div id="hudCombo"></div></div>
       <div class="hudR">
         <div class="air">breath<div id="hudAir"><div id="hudAirFill"></div><div id="hudAirNeed"></div></div></div>
-        <div id="hudDepth">0 fathoms</div>
+        <div id="hudDepth">shelf 1 · 0 fathoms</div>
       </div>
-      <button class="primary" id="surfBtn" type="button">Surface &#9650;</button>
     </div>
 
     <section id="title" class="screen" aria-labelledby="gameTitle">
       <p class="kicker">A Saltmarsh arcade</p>
       <h1 id="gameTitle">Crabber's Cove Dive</h1>
-      <p class="lede">One breath, one dive. The deeper the cove, the richer the wrecks, but you only keep what you <em>surface</em> with.</p>
+      <p class="lede">A heist on one breath. Creep past the sahuagin, work the oysters and locks, and get back to the skiff before you drown.</p>
       <div class="helms" id="helms" role="radiogroup" aria-label="Choose a diver"></div>
       <p class="perk" id="perkLine"></p>
       <div class="row"><button class="primary" id="startBtn">Take a breath</button><button class="quiet" id="howBtn">How to dive</button></div>
@@ -157,7 +150,7 @@ ul.perks li span{ color:var(--dim); }
         <div class="boardHead"><span id="boardTitle">Best on this device</span><button id="boardToggle" hidden>Show the fleet</button></div>
         <ol id="boardList"></ol>
       </div>
-      <p class="hint">Tap left or right of the diver to change lanes. Also in the arcade: <a href="./">Weatherlight Run</a></p>
+      <p class="hint">Tap to swim, hold on loot to work it, hide in kelp. Swim back up to the skiff to bank. Also in the arcade: <a href="./">Weatherlight Run</a></p>
     </section>
 
     <section id="howto" class="screen" hidden aria-labelledby="howTitle">
@@ -165,24 +158,25 @@ ul.perks li span{ color:var(--dim); }
       <h2 id="howTitle">How to dive</h2>
       <div class="guide">
         <h3>One breath</h3>
-        <p>You start beside the skiff and sink head-first into the cove. Tap left or right of the diver to slide one lane that way (arrow keys or A and D on a keyboard). Esc or P pauses.</p>
-        <p>When you've got enough, tap <b>Surface</b> (or press &uarr;, W or Space) to turn around and kick for the air. There's no going back down. The way up passes the same rocks and nets you dodged on the way down, and the sahuagin follow you up.</p>
-        <h3>Breath</h3>
-        <p>The bar top right drains every second, and faster the deeper you are. The gold tick on it is the breath you need to swim straight up from here without a hit. The bar turns gold when you're cutting it close and red when you won't make it without an air bubble. Run out and you drown, and everything you were carrying stays in the cove.</p>
-        <h3>In the cove</h3>
-        <div class="item"><canvas data-icon="rock"></canvas><p><b>Rocks.</b> They sit still. Hitting one costs 6 seconds of breath.</p></div>
-        <div class="item"><canvas data-icon="net"></canvas><p><b>Crab nets.</b> From 12 fathoms down. They sway between two lanes, snag you for a moment and cost 3 seconds of breath.</p></div>
-        <div class="item"><canvas data-icon="sahu"></canvas><p><b>Sahuagin.</b> From 30 fathoms down. A green ripple shows where one lurks, then it darts at you. Getting caught steals 30% of the gold you carry and 3 seconds of breath.</p></div>
+        <p>You start under the skiff. Tap anywhere to swim there in a straight line, or keep your finger down and drag to steer; a ring marks where you're headed, and you slide along rocks. The cove is a stack of shelves, each one screen and about 8 fathoms deep. A crevice in each floor drops you to the next. On a keyboard, swim with the arrows or WASD. Esc or P pauses.</p>
+        <p>The bar top right drains every second, faster the deeper you are, even while you hide or work. The gold tick on it is the breath it takes to swim straight back up to the skiff from here, if no patrol makes you wait. The bar turns gold when you're cutting it close and red when you won't make it. There's no Surface button: swim back up through each shelf's opening and out under the skiff to bank (once you've been at least one shelf down). Run out and you drown with everything.</p>
+        <h3>Sneaking</h3>
+        <div class="item"><canvas data-icon="sahu"></canvas><p><b>Sahuagin.</b> From shelf 2 down they patrol, and the green wedge in front of each is what it sees. Rock blocks it. Stay in a wedge and a <b>?</b> fills over half a second; when it turns to <b>!</b> the sahuagin hunts you. Getting caught steals 30% of everything you carry and 3 seconds of breath, and throws you back to the shelf's entrance.</p></div>
+        <div class="item"><canvas data-icon="kelp"></canvas><p><b>Kelp.</b> While you're in a kelp bed you're hidden and nothing can spot you, though a hunter can still bump into you. Break its line of sight for 2 seconds and it gives up.</p></div>
+        <p><b>Noise.</b> An oyster clamping shut, a missed lock and a snagged net all make noise. Sahuagin nearby swim over to look.</p>
+        <p><b>Traces.</b> Opened oysters and chests stay open, and a sahuagin that spots one is alerted for the rest of the dive: faster, sharper-eyed, and marked in red. Every chest you crack on the way down makes the climb back harder.</p>
+        <h3>Holds</h3>
+        <p>Press and hold on something within reach to work it (hold Space or E on a keyboard). A ring appears above it; let go to release. You can't swim while you work, and your breath keeps draining.</p>
+        <div class="item"><canvas data-icon="oyster"></canvas><p><b>Oysters.</b> From shelf 3. The ring fills: let go in the gold arc for a pearl, or in the thin black arc near the end for a black pearl, worth three. Too early and nothing happens. Hold too long and it clamps shut: 3 seconds of breath, noise, and it's closed for good.</p></div>
+        <div class="item"><canvas data-icon="chest"></canvas><p><b>Chests.</b> From shelf 6. A three-tumbler lock: the needle turns while you hold, so let go in the gold window to click a tumbler. Miss and the lock resets, noisily.</p></div>
+        <div class="item"><canvas data-icon="net"></canvas><p><b>Nets.</b> From shelf 3, strung across gaps. Hold for a second and a half to cut one. Swim into one and you're snagged for a moment, and the floats rattle.</p></div>
+        <div class="item"><canvas data-icon="air"></canvas><p><b>Air pockets.</b> From shelf 2, under ledges and often on a patrol's beat. Hold to gulp breath back, up to 8 seconds a pocket.</p></div>
         <h3>Loot</h3>
-        <div class="item"><canvas data-icon="coin"></canvas><p><b>Coins.</b> 10 gold each, often in lines of three.</p></div>
-        <div class="item"><canvas data-icon="pearl"></canvas><p><b>Pearls.</b> Below 20 fathoms. 40 gold.</p></div>
-        <div class="item"><canvas data-icon="chest"></canvas><p><b>Chests.</b> Below 50 fathoms, and rare. 150 gold.</p></div>
-        <div class="item"><canvas data-icon="bubble"></canvas><p><b>Air bubbles.</b> 8 seconds of breath back.</p></div>
-        <p>Loot is worth more the deeper you find it: double at 25 fathoms, triple at 50, five times at 100. Every two pieces in a row raise your combo by one, up to &times;8, and any hit drops it back to &times;1.</p>
-        <h3>The dark</h3>
-        <p>Your lantern reaches less far the deeper you go. Pearls and chests glint in the dark, and you can always see a sahuagin's ripple.</p>
+        <div class="item"><canvas data-icon="coin"></canvas><p><b>Coins.</b> 10 gold each. Swim over them; they make no sound.</p></div>
+        <p>A pearl is 40 gold, a black pearl 120, a chest 150. Loot is worth more the deeper you find it: double at 25 fathoms, triple at 50.</p>
         <h3>Scoring</h3>
-        <p>Surface to bank everything you're carrying, plus 10 gold for every fathom of your deepest point. Drown and you bank nothing.</p>
+        <p>Swim out under the skiff to bank everything you carry, plus 10 gold for every fathom of your deepest point. Drown and you bank nothing.</p>
+        <p><b>Quiet streak.</b> Every piece you take while no sahuagin on the shelf is hunting or showing a <b>?</b> builds your streak: every 2 pieces add ×1 to what loot is worth, up to ×4. Being spotted or caught resets it.</p>
         <ul class="perks" id="howPerks"></ul>
       </div>
       <button class="primary" id="howBack">Back to the skiff</button>
@@ -201,7 +195,7 @@ ul.perks li span{ color:var(--dim); }
         <dt id="overCarryLbl">Carried up</dt><dd id="overCarry"></dd>
         <dt>Depth bonus</dt><dd id="overBonus"></dd>
         <dt>Deepest</dt><dd id="overDeep"></dd>
-        <dt>Best combo</dt><dd id="overCombo"></dd>
+        <dt>Haul</dt><dd id="overHaul"></dd>
         <dt>Diver</dt><dd id="overHelm"></dd>
       </dl>
       <p class="best" id="overBest"></p>
@@ -220,39 +214,197 @@ ul.perks li span{ color:var(--dim); }
 // ---------- config ----------
 const LEADERBOARD_URL = 'https://saltmarsh-arcade.cbingham222.workers.dev';
 const GAME_ID = 'crabbers-cove-dive';
-const STORE = 'ccd.v1';
+const STORE = 'ccd.v2';                   // v2: the stealth dive (ccd.v1 held the lane-dodging dive's scores)
 
 const W = 360, H = 640;
-const LANES = [60, 180, 300];
-const FATHOM = 60;                        // px of cove per fathom
-const DIVE_Y = 200, RISE_Y = 450;         // diver's screen y going down / coming up
 
-// tuning knobs (first pass, untested at the table)
-const AIR = 75;                           // seconds of breath at the surface
-const DOWN_MIN = 130, DOWN_MAX = 260;     // descent px/s, surface → 90 fathoms
-const UP_SPD = 290;                       // ascent px/s
-const PRESSURE = 150;                     // breath drains 1/s at the surface, +1/s per this many fathoms
-const COST = { rock:6, net:3, sahu:3 };   // seconds of breath per hit
-const STEAL = 0.3;                        // share of carried gold a sahuagin takes
-const BUBBLE_AIR = 8;
-const LOOT = { coin:10, pearl:40, chest:150 };
+// ---------- tuning knobs (first pass, untested at the table) ----------
+// Reference: a shelf is one screen, ~8 fathoms; crossing one at full kick is ~3.7 s, ~5-7 s when you wait out the
+// patrols. Breath 90 s drains 1/s + 1/s per 150 fathoms, so a careful dive to shelf 7 and back just fits, and
+// shelf 8 and back takes air pockets or a near-perfect run. Being seen fills a meter over 0.5 s; kelp hides you.
+// the cove
+const SHELVES = 8;                        // shelves in the cove; the last has no crevice
+const TOP = 76, BOT = 630;                // y of a shelf's ceiling and floor (the top 76 px sit under the HUD)
+const X0 = 14, X1 = 346;                  // x of the cove walls
+const FATHOM = 70;                        // px per fathom
+const SHELF_F = 8;                        // fathoms per shelf
+const GAP_W = 84;                         // px, width of a ceiling opening / floor crevice
+const PASS_D = 8;                         // px past the ceiling / floor line that takes you through
+const ENTER_Y = 18;                       // px inside the next shelf where you come out
+const THRU_D = 30;                        // px: a tap in a gap this close to the floor / ceiling swims through it
+const PAN_T = 0.35;                       // s the camera pans between shelves (the world waits; breath doesn't)
+const BANK_SHELF = 2;                     // shelf you must have reached before the skiff banks you
+const MIRROR_P = 0.5;                     // chance a shelf is mirrored (a side opening follows the crevice above it)
+const SURF_Y = 44;                        // y of the waterline on shelf 1
+// the diver
+const SWIM = 150;                         // px/s top speed
+const ACCEL = 8;                          // per s, how fast velocity eases toward the wanted one
+const DIVER_R = 13, WREN_R = 10;          // px, collision radius
+const ARRIVE = 4;                         // px from the target at which she stops
+const ARRIVE_K = 6;                       // per s: she slows over the last SWIM / ARRIVE_K px
+const STUCK_T = 0.3;                      // s pushing into rock before a tap target is dropped
+const DETOUR_GAP = 8;                     // px clearance of the points she aims at to swim round a rock in the way
+const DETOUR_SKIN = 2;                    // px of graze that doesn't count as a rock in the way
+// input
+const REACH = 46;                         // px from the diver an item can be worked
+const HIT_R = 24;                         // px, an item's touch radius (48 px targets)
+const DRIFT = 12;                         // px a press may wander and still become a hold
+const HOLD_MS = 180;                      // ms before a press on an item becomes a hold
+// sahuagin
+const PATROL_SPD = [55, 85];              // px/s patrol speed on shelf 2 → shelf 8
+const SAHU_R = 14;                        // px, collision radius
+const LOOK_T = 0.8;                       // s a patrol pauses at each waypoint (and a suspicious one looks)
+const SWEEP = 25 * Math.PI / 180;         // rad, how far a look swings the cone each way
+const CONE_R = 190;                       // px, sight range
+const CONE_A = 32 * Math.PI / 180;        // rad, sight half-angle
+const CONE_RAYS = 22;                     // rays per drawn cone (rock clips it)
+const DETECT_T = 0.5;                     // s in plain sight to fill the meter
+const ALERT_DETECT_T = 0.35;              // ...for an alerted sahuagin
+const HUNT_K = 1.0;                       // hunting speed, × SWIM
+const LOSE_T = 2;                         // s out of sight before a hunter gives up
+const LISTEN_R = 30;                      // px from a noise where a suspicious sahuagin stops to look
+const GHOST_T = 0.6;                      // s a returning sahuagin may be stuck on rock or net before it slips past it
+const NOISE_R = 220;                      // px a noise carries (rock blocks it)
+const ALERT_SPD_K = 1.2;                  // patrol speed of an alerted sahuagin, ×
+const ALERT_FLASH = 1;                    // s the alert mark pulses when it's raised
+const STEAL = 0.3;                        // share of everything carried a catch takes
+const CAUGHT_COST = 3;                    // s of breath a catch costs
+const CAUGHT_INV = 1.5;                   // s of invulnerability after a catch
+const SHOVE_T = 0.3;                      // s the slide back to the shelf's entrance takes
+const SHAKE_T = 0.35;                     // s of screen shake on a catch (half on a clamp)
+// holds
+const OYSTER_T = 1.8;                     // s for an oyster's ring to fill
+const PEARL_ARC = [0.45, 0.80];           // share of the fill: let go from here for a pearl (anywhere short of the end)
+const BLACK_ARC = [0.86, 0.93];           // ...or here for a black pearl
+const CLAMP_COST = 3;                     // s of breath an oyster clamping shut costs
+const LOCK_TURN = 1.6;                    // s per turn of a lock's needle (the spec's LOCK_SPD)
+const LOCK_WIN = 0.14;                    // share of the dial the gold window covers
+const TUMBLERS = 3;                       // clicks to open a chest
+const LOCK_AHEAD = 0.3;                   // a new window starts at least this far round from the needle
+const LOCK_GRACE = 0.2;                   // share of a turn the needle must move in one hold before letting go counts
+const NET_CUT = 1.5;                      // s of holding to cut a net (progress is kept if you let go)
+const NET_W = 7;                          // px, a net's thickness
+const SNAG_T = 0.7;                       // s a net holds you
+const NET_CLEAR = 4;                      // px she must back off a net before it can snag her again
+const GULP_RATE = 4;                      // s of breath per s of gulping
+const GULP_MAX = 8;                       // s of breath in each air pocket
+const RING_UP = 52, RING_R = 22;          // px: the hold ring sits this far above the item, and this big
+// perks
+const DAVY_AIR = 1.2;                     // Davy's breath, ×
+const VAELOR_LOOT = 1.25;                 // Vaelor's loot value, ×
+const MCNALTY_SWIM = 1.25, MCNALTY_LOOT = 0.9;   // McNalty's speed and loot value, ×
+const WREN_ARC = 1.5;                     // Wren's timing arcs and windows, × (same centres)
+const WREN_NET = 2 / 3;                   // Wren's net cutting time, ×
+const GIL_STREAK = 2;                     // Gilgamesh's streak steps per quiet piece
+// loot, streak, scoring
+const LOOT = { coin:10, pearl:40, black:120, chest:150 };   // base gold per piece
+const COIN_R = 12;                        // px, coin pickup radius (plus the diver's)
 const DEPTH_BONUS = 10;                   // gold per fathom of max depth, on surfacing
-const depthMult = f => 1 + f / 25;        // loot value by depth: ×2 at 25 fathoms, ×5 at 100
+const depthMult = f => 1 + f / 25;        // loot value by depth: ×2 at 25 fathoms, ×3 at 50
+const STREAK_STEP = 2;                    // quiet pieces per +1 on the streak multiplier
+const STREAK_CAP = 4;                     // highest streak multiplier
+// breath
+const AIR = 90;                           // seconds of breath at the surface (75 was too tight once patrols make you wait)
+const PRESSURE = 150;                     // breath drains 1/s at the surface, +1/s per this many fathoms
+const ROUTE_K = 1.15;                     // the tick's allowance for routes bending round rock
+const HINT_T = 3.5;                       // s the opening hint shows
+const DIVER_ART = 0.8;                    // diver art scale at DIVER_R (Wren's is smaller)
+
+// ---------- shelf templates ----------
+// One per depth, unmirrored, in screen px (play area x 14–346, y 76–630). open / crev: x of the ceiling
+// opening and floor crevice (180 = middle; a side opening must sit under the side crevice above it).
+// rocks / kelp: [x, y, rx, ry] ellipses. coins, air: candidate [x, y] spots, coinN / airN used.
+// loot: candidate [kind, x, y] oyster / chest spots, lootN used. nets: [x0, y0, x1, y1]. pats: waypoint loops.
+const SHELF_T = [
+  { // 1 · the shallows: coins and kelp, nobody home
+    open:180, crev:270,
+    rocks:[[70,210,40,24], [292,250,42,28], [160,330,46,24], [60,460,34,36], [250,430,40,26], [150,565,44,22]],
+    kelp:[[226,180,30,40], [90,330,34,46], [304,520,30,42]],
+    coins:[[180,140], [120,250], [240,300], [300,360], [110,400], [200,420], [150,500], [230,520], [70,560], [300,600], [40,300]], coinN:8
+  },
+  { // 2 · one slow patrol across the middle
+    open:270, crev:180,
+    rocks:[[262,160,50,16], [70,250,38,26], [300,300,32,22], [96,520,46,22], [262,480,34,28]],
+    kelp:[[180,360,44,60], [56,440,32,46], [300,220,28,36]],
+    coins:[[150,140], [60,180], [220,250], [120,330], [240,330], [310,420], [160,470], [250,540], [60,600], [300,600]], coinN:7,
+    air:[[96,556], [300,334]], airN:1,
+    pats:[[[50,345], [310,345], [310,385], [50,385]]]
+  },
+  { // 3 · oysters and a net
+    open:180, crev:90,
+    rocks:[[180,165,56,16], [300,250,34,28], [56,290,32,24], [190,390,48,22], [300,505,38,24], [132,548,42,15]],
+    kelp:[[80,200,32,42], [262,345,32,48], [66,430,34,50], [236,570,36,36]],
+    coins:[[140,130], [230,130], [120,240], [230,250], [180,300], [40,380], [320,400], [120,500], [200,500], [300,600]], coinN:6,
+    loot:[['oyster',300,214], ['oyster',190,360], ['oyster',60,612], ['oyster',300,474]], lootN:2,
+    air:[[190,426], [300,543]], airN:1,
+    nets:[[238,392,346,392]],
+    pats:[[[40,350], [300,350]]]
+  },
+  { // 4 · two patrols
+    open:90, crev:180,
+    rocks:[[96,165,52,16], [270,200,40,26], [150,300,36,22], [300,390,32,26], [60,430,34,26], [200,470,40,22], [180,552,62,16]],
+    kelp:[[230,290,30,44], [100,380,30,40], [300,500,30,40], [60,560,30,40]],
+    coins:[[60,120], [150,120], [200,200], [320,280], [90,250], [240,380], [140,440], [260,560], [100,500]], coinN:6,
+    loot:[['oyster',270,168], ['oyster',150,272], ['oyster',60,398], ['oyster',200,442], ['oyster',320,612]], lootN:3,
+    air:[[200,506], [300,430]], airN:1,
+    nets:[[14,300,114,300]],
+    pats:[[[40,350], [260,350]], [[100,508], [262,508]]]
+  },
+  { // 5 · two faster patrols
+    open:180, crev:270,
+    rocks:[[180,160,60,16], [60,240,36,26], [300,260,34,24], [170,330,40,24], [80,470,36,24], [230,450,34,26], [276,552,48,15]],
+    kelp:[[260,340,30,46], [100,350,30,44], [150,560,34,40], [320,440,24,40]],
+    coins:[[120,120], [240,120], [180,240], [60,320], [300,320], [170,400], [80,560], [220,520], [320,600]], coinN:6,
+    loot:[['oyster',60,208], ['oyster',300,230], ['oyster',170,300], ['oyster',80,440], ['oyster',230,418]], lootN:3,
+    air:[[170,368], [80,508]], airN:1,
+    nets:[[204,450,264,560]],
+    pats:[[[40,400], [310,400]], [[120,260], [250,280]]]
+  },
+  { // 6 · the first chest
+    open:270, crev:180,
+    rocks:[[262,160,52,16], [80,220,36,26], [190,280,34,22], [300,330,30,24], [70,420,36,26], [200,430,40,24], [180,552,62,16]],
+    kelp:[[140,180,30,40], [260,410,30,44], [110,320,30,40], [300,560,30,40]],
+    coins:[[300,120], [200,120], [80,300], [190,330], [300,260], [140,500], [260,500], [60,600], [320,600]], coinN:5,
+    loot:[['chest',60,600], ['chest',300,600], ['oyster',80,188], ['oyster',190,254], ['oyster',70,388], ['oyster',200,400]], lootN:3,
+    air:[[200,468], [70,458]], airN:1,
+    nets:[[14,520,120,520]],
+    pats:[[[40,375], [315,378], [150,350]], [[100,498], [262,498]]]
+  },
+  { // 7 · three patrols, chests
+    open:180, crev:90,
+    rocks:[[180,160,60,16], [300,235,32,22], [60,265,32,22], [175,330,44,20], [90,450,36,22], [215,470,34,22], [110,552,48,15], [262,600,30,18]],
+    kelp:[[260,320,30,44], [90,360,30,40], [330,500,18,40], [190,580,30,34]],
+    coins:[[120,120], [240,120], [180,250], [50,330], [300,320], [180,410], [260,540], [60,600], [140,610]], coinN:5,
+    loot:[['chest',225,612], ['chest',175,298], ['chest',300,205], ['oyster',60,236], ['oyster',90,421], ['oyster',215,440]], lootN:3,
+    air:[[175,364], [215,506]], airN:1,
+    nets:[[14,450,52,450]],
+    pats:[[[40,400], [300,400]], [[110,235], [250,250]], [[310,455], [310,570]]]
+  },
+  { // 8 · the floor: three fast patrols round the treasure
+    open:90, crev:null,
+    rocks:[[96,160,52,16], [240,200,36,22], [165,290,36,20], [305,370,28,22], [60,400,32,24], [200,445,40,20], [120,565,40,20], [280,575,40,20]],
+    kelp:[[230,300,30,44], [90,300,28,36], [330,480,18,40], [200,585,30,34]],
+    coins:[[60,120], [160,120], [200,240], [320,330], [100,250], [250,390], [140,470], [60,600], [230,615]], coinN:5,
+    loot:[['chest',120,537], ['chest',280,547], ['chest',200,417], ['oyster',240,172], ['oyster',165,262], ['oyster',60,370], ['oyster',330,612]], lootN:4,
+    air:[[200,478], [305,405]], airN:1,
+    nets:[[240,445,346,445]],
+    pats:[[[40,350], [250,350], [150,332]], [[90,505], [300,505]], [[320,120], [320,300]]]
+  }
+];
 
 const HELMS = [
-  { id:'caspian',   name:'Caspian Dreadtide',     sub:"Parker's wizard",   color:'#8fa6ff', perk:'<b>Arcane ward.</b> The first hit of the dive is absorbed.' },
+  { id:'caspian',   name:'Caspian Dreadtide',     sub:"Parker's wizard",   color:'#8fa6ff', perk:"<b>Arcane ward.</b> The first time he's caught, he blinks into the nearest kelp and keeps his gold." },
   { id:'vaelor',    name:'Vaelor Borean',         sub:"Joe's sorcerer",    color:'#ff9a5c', perk:'<b>Draconic greed.</b> Loot is worth 25% more.' },
   { id:'davy',      name:'Davy Jones',            sub:"Hales's druid",     color:'#5cc8ff', perk:'<b>Seal shape.</b> Breath lasts 20% longer.' },
-  { id:'wren',      name:'Wren Pike',             sub:"Nick's rogue",      color:'#c25cff', perk:'<b>Evasion.</b> A slimmer silhouette slips through tighter gaps.' },
-  { id:'mcnalty',   name:'Midknight McNalty',     sub:"Jesse's ranger",    color:'#9ad36b', perk:'<b>Strong kick.</b> Ascends 25% faster; loot is worth 10% less.' },
-  { id:'gilgamesh', name:'Gilgamesh Atlas Orion', sub:"Chandler's bard",   color:'#ffd35c', perk:'<b>Inspiration.</b> Combo climbs twice as fast.' },
+  { id:'wren',      name:'Wren Pike',             sub:"Nick's rogue",      color:'#c25cff', perk:'<b>Light fingers.</b> The timing windows on oysters, locks and nets are 50% wider.' },
+  { id:'mcnalty',   name:'Midknight McNalty',     sub:"Jesse's ranger",    color:'#9ad36b', perk:'<b>Strong kick.</b> Swims 25% faster; loot is worth 10% less.' },
+  { id:'gilgamesh', name:'Gilgamesh Atlas Orion', sub:"Chandler's bard",   color:'#ffd35c', perk:'<b>Inspiration.</b> The quiet streak climbs twice as fast.' },
 ];
 const LOCKER = {
   davy:"The sea keeps what's owed, Davy.", gilgamesh:"The last note was a bubble.", mcnalty:"Punishment served, fathoms down.",
   wren:"Light fingers, heavy lungs.", caspian:"No spell for breathing.", vaelor:"Greed, meet the deep."
 };
 const SURFACED = ['Air, and gold to show for it.', 'Sunlight. Count it twice.', 'The cove lets you go.', 'Gasping, and richer.'];
-const ROCK_WORDS = ['Barnacles!', 'Struck the rocks', 'Ow!'];
 
 // ---------- helpers ----------
 const $ = id => document.getElementById(id);
@@ -265,7 +417,12 @@ const helmShort = id => { const h = helmOf(id); return h ? h.name.split(' ')[0] 
 const fmt = n => Math.floor(n).toLocaleString();
 const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 const mix = (a, b, k) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * k)).join(',')})`;
-const fath = px => px / FATHOM;
+const TAU = Math.PI * 2;
+const angDiff = (a, b) => { const d = (((b - a) % TAU) + TAU) % TAU; return d > Math.PI ? d - TAU : d; };
+const turn = (a, b, k) => a + angDiff(a, b) * Math.min(1, k);
+const count = (n, word) => n + ' ' + word + (n === 1 ? '' : 's');
+const fathAt = (k, y) => ((k - 1) * SHELF_F * FATHOM + clamp(y - TOP, 0, BOT - TOP)) / FATHOM;   // shelf k, screen y
+const drain = f => 1 + f / PRESSURE;      // breath per second at f fathoms
 
 // ---------- storage (per device) ----------
 function loadStore(){ try { return JSON.parse(localStorage.getItem(STORE)) || {}; } catch { return {}; } }
@@ -299,387 +456,833 @@ let helmIdx = Math.max(0, HELMS.findIndex(h => h.id === store.helm));
 let G = null;
 let fleetCache = null, boardMode = 'local';
 
-function newRun(){
-  const helm = HELMS[helmIdx];
-  const air = AIR * (helm.id === 'davy' ? 1.2 : 1);
+const keys = new Set();        // held swim keys: 'left' | 'right' | 'up' | 'down'
+let press = null;              // the one finger (or mouse button) on the canvas: { id, x0, y0, x, y, age, e, mode }
+let workKey = false;           // Space / E is holding an item
+const clearInput = () => { keys.clear(); press = null; workKey = false; if (G) G.work = null; };
+// a finger still down after a shelf change or a hold that ended by itself steers again only once it moves DRIFT px
+const freezePress = () => { press.mode = 'swim'; press.frozen = true; press.fx = press.x; press.fy = press.y; };
+
+// ---------- shelves ----------
+// The cove is built once per run: each template is mirrored or not, loot is picked from its spots, and each patrol
+// gets a random direction and start phase. A side opening has to sit under the side crevice above it, so a shelf
+// whose opening is off-centre follows the shelf above's mirroring (still a coin flip overall, just a shared one).
+const patrolSpd = k => PATROL_SPD[0] + (PATROL_SPD[1] - PATROL_SPD[0]) * clamp((k - 2) / (SHELVES - 2), 0, 1);
+function buildShelf(k, t, flip, rng){
+  const mx = x => flip ? W - x : x;
+  const pickN = (arr, n) => {
+    const a = (arr || []).slice();
+    for (let i = a.length - 1; i > 0; i--){ const j = Math.floor(rng() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a.slice(0, n || 0);
+  };
+  const sh = {
+    k, flip, open:mx(t.open), crev:t.crev === null ? null : mx(t.crev), spd:patrolSpd(k),
+    rocks:t.rocks.map(([x, y, rx, ry], i) => ({ x:mx(x), y, rx, ry, seed:hash(k * 31 + i) })),
+    kelp:t.kelp.map(([x, y, rx, ry], i) => ({ x:mx(x), y, rx, ry, seed:hash(k * 17 + i) })),
+    items:[], traces:[], sahus:[], solids:null
+  };
+  for (const [x, y] of pickN(t.coins, t.coinN)) sh.items.push({ kind:'coin', x:mx(x), y, r:rng() * TAU });
+  for (const [kind, x, y] of pickN(t.loot, t.lootN)){
+    if (kind === 'chest') sh.items.push({ kind, x:mx(x), y, tumbler:0, needle:0, win:LOCK_AHEAD + rng() * (1 - LOCK_AHEAD - LOCK_WIN * WREN_ARC), open:false });   // never a free first click
+    else sh.items.push({ kind:'oyster', x:mx(x), y, open:false, shut:false });
+  }
+  for (const [x, y] of pickN(t.air, t.airN)) sh.items.push({ kind:'air', x:mx(x), y, left:GULP_MAX });
+  for (const [x0, y0, x1, y1] of t.nets || []) sh.items.push({ kind:'net', x0:mx(x0), y0, x1:mx(x1), y1, x:mx((x0 + x1) / 2), y:(y0 + y1) / 2, cut:0, gone:false, touch:false });
+  for (const pts of t.pats || []){
+    const p = pts.map(([x, y]) => [mx(x), y]);
+    if (rng() < 0.5) p.reverse();
+    const P = patrolOf(p, sh.spd), s = { P, pt:rng() * P.period, mode:'patrol', meter:0, alert:false, alertT:0, lose:0, look:0, lookA:0, tx:0, ty:0, stuck:0, ghost:false };
+    Object.assign(s, patrolPose(P, s.pt));
+    sh.sahus.push(s);
+  }
+  return sh;
+}
+function buildCove(rng = Math.random){
+  const cove = [];
+  for (let k = 1; k <= SHELVES; k++){
+    const t = SHELF_T[k - 1], above = cove[k - 2];
+    const flip = k === 1 || t.open === W / 2 ? rng() < MIRROR_P : W - t.open === above.crev;
+    cove.push(buildShelf(k, t, flip, rng));
+  }
+  return cove;
+}
+
+// ---------- geometry: collision + sight ----------
+// Rocks are axis-aligned ellipses, used for both collision and sight. The walls, and the ceiling and floor
+// either side of their gaps, are rectangles. Circles slide: whatever they overlap pushes them back out.
+const inEllipse = (o, x, y, pad = 0) => ((x - o.x) / (o.rx + pad)) ** 2 + ((y - o.y) / (o.ry + pad)) ** 2 < 1;
+function solids(sh){
+  if (sh.solids) return sh.solids;
+  const r = [], h = GAP_W / 2, F = 1000;
+  r.push({ x0:-F, y0:-F, x1:sh.open - h, y1:TOP }, { x0:sh.open + h, y0:-F, x1:F, y1:TOP });
+  if (sh.crev === null) r.push({ x0:-F, y0:BOT, x1:F, y1:F });
+  else r.push({ x0:-F, y0:BOT, x1:sh.crev - h, y1:F }, { x0:sh.crev + h, y0:BOT, x1:F, y1:F });
+  r.push({ x0:-F, y0:-F, x1:X0, y1:F }, { x0:X1, y0:-F, x1:F, y1:F });
+  return sh.solids = r;
+}
+function pushRect(p, r, rc){
+  const qx = clamp(p.x, rc.x0, rc.x1), qy = clamp(p.y, rc.y0, rc.y1), dx = p.x - qx, dy = p.y - qy, d = Math.hypot(dx, dy);
+  if (d >= r) return false;
+  if (d < 1e-6){                                   // centre inside: out through the nearest side
+    const o = [[rc.x0 - r - p.x, 0], [rc.x1 + r - p.x, 0], [0, rc.y0 - r - p.y], [0, rc.y1 + r - p.y]]
+      .reduce((a, b) => Math.abs(a[0] + a[1]) < Math.abs(b[0] + b[1]) ? a : b);
+    p.x += o[0]; p.y += o[1]; return true;
+  }
+  p.x = qx + dx / d * r; p.y = qy + dy / d * r; return true;
+}
+function pushEllipse(p, r, o){                      // out along the line from the centre (cheap; slides fine)
+  const dx = p.x - o.x, dy = p.y - o.y, d = Math.hypot(dx / (o.rx + r), dy / (o.ry + r));
+  if (d >= 1) return false;
+  if (d < 1e-6){ p.y = o.y - o.ry - r; return true; }
+  p.x = o.x + dx / d; p.y = o.y + dy / d; return true;
+}
+function segNear(x0, y0, x1, y1, x, y){            // closest point on a segment
+  const vx = x1 - x0, vy = y1 - y0, L = vx * vx + vy * vy || 1, t = clamp(((x - x0) * vx + (y - y0) * vy) / L, 0, 1);
+  return [x0 + vx * t, y0 + vy * t];
+}
+function pushNet(p, r, n){
+  const [qx, qy] = segNear(n.x0, n.y0, n.x1, n.y1, p.x, p.y), dx = p.x - qx, dy = p.y - qy, d = Math.hypot(dx, dy), m = r + NET_W / 2;
+  if (d >= m) return false;
+  if (d < 1e-6){ const L = Math.hypot(n.x1 - n.x0, n.y1 - n.y0) || 1; p.x = qx - (n.y1 - n.y0) / L * m; p.y = qy + (n.x1 - n.x0) / L * m; return true; }
+  p.x = qx + dx / d * m; p.y = qy + dy / d * m; return true;
+}
+// push a circle out of everything solid on the shelf (a ghosting sahuagin only feels the walls); returns the net it touched
+function slide(sh, p, r, ghost){
+  let net = null;
+  for (let it = 0; it < 4; it++){
+    let hit = false;
+    if (!ghost) for (const o of sh.rocks) hit = pushEllipse(p, r, o) || hit;
+    if (!ghost) for (const n of sh.items) if (n.kind === 'net' && !n.gone && pushNet(p, r, n)){ hit = true; net = n; }
+    for (const rc of solids(sh)) hit = pushRect(p, r, rc) || hit;
+    if (!hit) break;
+  }
+  return net;
+}
+// where a segment first enters a rock: t in [0, 1], or -1 if it misses
+function segEllipseT(o, x0, y0, x1, y1){
+  const ax = (x0 - o.x) / o.rx, ay = (y0 - o.y) / o.ry, bx = (x1 - x0) / o.rx, by = (y1 - y0) / o.ry;
+  const A = bx * bx + by * by, B = 2 * (ax * bx + ay * by), C = ax * ax + ay * ay - 1;
+  if (C <= 0) return 0;
+  if (A < 1e-12) return -1;
+  const D = B * B - 4 * A * C;
+  if (D < 0) return -1;
+  const t = (-B - Math.sqrt(D)) / (2 * A);
+  return t >= 0 && t <= 1 ? t : -1;
+}
+const clearLine = (sh, x0, y0, x1, y1) => sh.rocks.every(o => segEllipseT(o, x0, y0, x1, y1) < 0);
+function inCone(s, x, y){
+  const dx = x - s.x, dy = y - s.y, d2 = dx * dx + dy * dy;
+  return d2 < CONE_R * CONE_R && (d2 < 1 || Math.abs(angDiff(s.ang, Math.atan2(dy, dx))) < CONE_A);
+}
+const sees = (sh, s, x, y) => inCone(s, x, y) && clearLine(sh, s.x, s.y, x, y);
+const hiddenAt = (sh, x, y) => sh.kelp.some(o => inEllipse(o, x, y));
+
+// ---------- patrols ----------
+// A patrol is a closed loop of waypoints swum at a steady speed, with a LOOK_T pause at each waypoint while the cone
+// swings round to the next leg and sweeps ±SWEEP. Its pose is a pure function of time, so a whole cycle can be sampled.
+function patrolOf(pts, spd){
+  const legs = [];
+  let T = 0;
+  for (let i = 0; i < pts.length; i++){
+    const [ax, ay] = pts[i], [bx, by] = pts[(i + 1) % pts.length], len = Math.hypot(bx - ax, by - ay);
+    legs.push({ ax, ay, bx, by, dir:Math.atan2(by - ay, bx - ax), t0:T, mv:len / spd });
+    T += len / spd + LOOK_T;
+  }
+  return { pts, legs, period:T, spd };
+}
+function patrolPose(P, t){
+  t = ((t % P.period) + P.period) % P.period;
+  const n = P.legs.length;
+  let i = n - 1;
+  while (i > 0 && P.legs[i].t0 > t) i--;
+  const L = P.legs[i];
+  if (t < L.t0 + L.mv){ const u = (t - L.t0) / L.mv; return { x:L.ax + (L.bx - L.ax) * u, y:L.ay + (L.by - L.ay) * u, ang:L.dir }; }
+  const u = clamp((t - L.t0 - L.mv) / LOOK_T, 0, 1), sm = u * u * (3 - 2 * u);
+  return { x:L.bx, y:L.by, ang:L.dir + angDiff(L.dir, P.legs[(i + 1) % n].dir) * sm + SWEEP * Math.sin(TAU * u) };
+}
+
+// ---------- breath + tick ----------
+const swimSpd = g => SWIM * (g.helm.id === 'mcnalty' ? MCNALTY_SWIM : 1);
+// breath to the surface from (x, y) on shelf k, if no patrol makes you wait: the leg to this shelf's opening, then
+// each shelf above opening-to-crevice, each × ROUTE_K at swim speed and that leg's mean drain, plus each pan up
+function breathUp(cove, k, x, y, spd){
+  const sh = cove[k - 1];
+  let b = Math.hypot(x - sh.open, y - TOP) * ROUTE_K / spd * drain((fathAt(k, y) + fathAt(k, TOP)) / 2);
+  for (let j = k - 1; j >= 1; j--){
+    const s = cove[j - 1];
+    b += Math.hypot(s.open - s.crev, BOT - TOP) * ROUTE_K / spd * drain((fathAt(j, TOP) + fathAt(j, BOT)) / 2);
+    b += PAN_T * drain(fathAt(j, BOT));
+  }
+  return b;
+}
+const regold = g => { g.gold = g.coinGold + g.bag.reduce((s, it) => s + it.val, 0); };
+const streakMult = g => Math.min(STREAK_CAP, 1 + Math.floor(g.quiet / STREAK_STEP));
+
+// ---------- run ----------
+function newRun(rng = Math.random){
+  const helm = HELMS[helmIdx], air = AIR * (helm.id === 'davy' ? DAVY_AIR : 1), cove = buildCove(rng);
   return {
-    helm, lane:1, x:LANES[1], depth:0, maxDepth:0, dir:1, spd:DOWN_MIN, air, airMax:air,
-    gold:0, loot:0, chain:0, combo:1, bestCombo:1, score:0, t:0, ents:[], pops:[],
-    nextRow:4 * FATHOM, lastSafe:[0,1,2], inv:0, snag:0, ward: helm.id === 'caspian',
-    shake:0, camY:DIVE_Y, sahuT:1.5, hint:3.5, over:false, saved:false, surfaced:false
+    helm, cove, shelf:1, maxShelf:1, maxF:0,
+    x:cove[0].open, y:TOP + ENTER_Y + 12, vx:0, vy:0, ang:Math.PI / 2, r:helm.id === 'wren' ? WREN_R : DIVER_R,
+    tx:null, ty:0, stuckT:0, hidden:false, air, airMax:air, tick:0,
+    gold:0, coinGold:0, coins:0, bag:[], tokens:0, score:0, t:0, quiet:0, spotted:false, ward:helm.id === 'caspian',
+    work:null, snag:0, inv:0, shove:null, pan:null, pops:[], rings:[], shake:0, hint:HINT_T, toldDeep:false,
+    over:false, saved:false, surfaced:false
   };
 }
-const dd = depth => Math.min(1, fath(depth) / 90);
-const upSpd = g => UP_SPD * (g.helm.id === 'mcnalty' ? 1.25 : 1);
-const drain = depth => 1 + fath(depth) / PRESSURE;
-// breath it takes to swim straight up from here with no hits
-const airNeeded = g => g.depth / upSpd(g) * drain(g.depth / 2);
-const PICKUPS = new Set(['coin', 'pearl', 'chest', 'bubble']);
-
-// ---------- spawning ----------
-// The cove is one persistent column: rows are laid down on the way down and are still there on the way up.
-function addEnt(g, h, wy){
-  const e = { kind:h.kind, lane:h.lane, x:LANES[h.lane], wy, dead:false };
-  if (h.kind === 'rock')   { e.w = 70; e.h = 56; e.seed = Math.random(); }
-  if (h.kind === 'net')    { e.w = 62; e.h = 38; e.a = h.lane; e.b = h.toLane; e.ph = rand(0, 6.28); e.sp = rand(0.7, 1.1); }
-  if (h.kind === 'sahu')   { e.w = 34; e.h = 40; e.mode = 'lurk'; e.warn = 0.55; e.vdir = 0; e.v = 0; }
-  if (h.kind === 'coin')   { e.w = 26; e.h = 26; e.r = Math.random() * 6.28; }
-  if (h.kind === 'pearl')  { e.w = 28; e.h = 26; }
-  if (h.kind === 'chest')  { e.w = 42; e.h = 32; }
-  if (h.kind === 'bubble') { e.w = 30; e.h = 30; e.r = Math.random() * 6.28; }
-  g.ents.push(e);
-  return e;
+const shelfOf = g => g.cove[g.shelf - 1];
+function pop(g, text, color, x = g.x, y = g.y - 40){ g.pops.push({ text, x, y, color, t:1.1 }); }
+const popUnder = (g, e, text, color) => pop(g, text, color, e.x, Math.min(e.y + 34, H - 16));
+function setTarget(g, x, y){                       // a swim target, clamped to water she can reach on this shelf
+  const sh = shelfOf(g);
+  x = clamp(x, X0, X1);
+  const inOpen = Math.abs(x - sh.open) < GAP_W / 2, inCrev = sh.crev !== null && Math.abs(x - sh.crev) < GAP_W / 2;
+  g.tx = x; g.ty = clamp(y, inOpen ? TOP - 5 * PASS_D : TOP, inCrev ? BOT + 5 * PASS_D : BOT); g.stuckT = 0;
 }
-function spawnRow(g, wy){
-  const f = fath(wy), d = dd(wy);
-  const pTwo = 0.12 + 0.45 * d;
-  const pNet = f > 12 ? 0.2 + 0.15 * d : 0;
-  const pSahu = f > 30 ? 0.15 + 0.2 * d : 0;
-  for (let k = 0; k < 8; k++){
-    const haz = [], occupied = new Set();
-    const lanes = [0, 1, 2].sort(() => Math.random() - 0.5);
-    if (Math.random() < pNet){
-      const a = lanes[0], b = a === 1 ? pick([0, 2]) : 1;
-      haz.push({ kind:'net', lane:a, toLane:b }); occupied.add(a); occupied.add(b);
+// A tap or drag. The canvas ends 10 px under the floor, so a finger near the floor in the crevice means "go down", and
+// near the ceiling in the opening "go up". A tap on loot there still swims to the loot.
+function aimAt(g, x, y){
+  const sh = shelfOf(g), cx = clamp(x, X0, X1);
+  const onItem = sh.items.some(e => e.kind !== 'net' && Math.hypot(e.x - cx, e.y - y) < HIT_R);
+  if (!onItem && sh.crev !== null && Math.abs(cx - sh.crev) < GAP_W / 2 && y >= BOT - THRU_D) y = BOT + 5 * PASS_D;
+  else if (!onItem && Math.abs(cx - sh.open) < GAP_W / 2 && y <= TOP + THRU_D) y = TOP - 5 * PASS_D;
+  setTarget(g, x, y);
+}
+function startPan(g, dir){
+  const from = shelfOf(g), to = g.cove[g.shelf - 1 + dir];
+  for (const s of from.sahus) if (s.mode === 'hunt' || s.mode === 'sus'){ s.mode = 'back'; s.meter = 0; }
+  g.pan = { from:g.shelf, to:g.shelf + dir, t:0, x0:g.x, y0:g.y };
+  g.x += dir > 0 ? to.open - from.crev : to.crev - from.open;
+  g.y = dir > 0 ? TOP + ENTER_Y : BOT - ENTER_Y;
+  g.shelf += dir; g.maxShelf = Math.max(g.maxShelf, g.shelf);
+  if (g.tx !== null){ g.tx = g.x; g.ty = g.y + dir * ENTER_Y; }
+  if (press) freezePress();
+  g.work = null; g.snag = 0; g.stuckT = 0;
+}
+
+// ---------- holds ----------
+const workable = e => e.kind === 'oyster' ? !e.open && !e.shut : e.kind === 'chest' ? !e.open : e.kind === 'air' ? e.left > 0 : e.kind === 'net' && !e.gone;
+const itemDist = (e, x, y) => { if (e.kind !== 'net') return Math.hypot(e.x - x, e.y - y); const [qx, qy] = segNear(e.x0, e.y0, e.x1, e.y1, x, y); return Math.hypot(qx - x, qy - y); };
+function nearestWorkable(g, x, y, r){             // the workable item nearest (x, y) within r, that the diver can reach
+  let best = null, bd = r;
+  for (const e of shelfOf(g).items){
+    if (!workable(e) || itemDist(e, g.x, g.y) > REACH) continue;
+    const d = itemDist(e, x, y);
+    if (d <= bd){ bd = d; best = e; }
+  }
+  return best;
+}
+function arcs(wren){                               // oyster arcs, widened about their centres for Wren
+  const k = wren ? WREN_ARC : 1, w = ([a, b]) => { const c = (a + b) / 2, h = (b - a) / 2 * k; return [c - h, c + h]; };
+  return { pearl:w(PEARL_ARC), black:w(BLACK_ARC) };
+}
+function oysterResult(u, wren){                    // u: share of the ring filled when let go
+  const A = arcs(wren);
+  if (u >= 1) return 'clamp';
+  if (u >= A.black[0] && u <= A.black[1]) return 'black';
+  return u >= A.pearl[0] ? 'pearl' : 'none';
+}
+const lockWin = g => LOCK_WIN * (g.helm.id === 'wren' ? WREN_ARC : 1);
+const inWindow = (needle, win, w) => ((needle - win) % 1 + 1) % 1 < w;
+const newWindow = (needle, w) => (needle + LOCK_AHEAD + Math.random() * (1 - LOCK_AHEAD - w)) % 1;
+const netTime = g => NET_CUT * (g.helm.id === 'wren' ? WREN_NET : 1);
+function startWork(g, e, px, py){                  // px, py: the finger (keyboard: none); the ring goes above ax, ay
+  let [ax, ay] = px === undefined ? [e.x, e.y] : e.kind === 'net' ? segNear(e.x0, e.y0, e.x1, e.y1, px, py) : [e.x, e.y];
+  if (py !== undefined) ay = Math.min(ay, py);     // above the thumb too (on a net, the part of it under the thumb)
+  g.work = { e, t:0, got:0, ax, ay }; g.tx = null; g.vx = g.vy = 0;
+}
+function take(g, sh, kind, e){
+  const quiet = !sh.sahus.some(s => s.mode === 'hunt' || s.meter > 0);
+  const perk = g.helm.id === 'vaelor' ? VAELOR_LOOT : g.helm.id === 'mcnalty' ? MCNALTY_LOOT : 1;
+  const v = Math.round(LOOT[kind] * depthMult(fathAt(sh.k, e.y)) * perk * streakMult(g));
+  if (kind === 'coin'){ g.coinGold += v; g.coins++; }
+  else g.bag.push({ kind, val:v });
+  if (quiet) g.quiet += g.helm.id === 'gilgamesh' ? GIL_STREAK : 1;
+  regold(g);
+  const word = { coin:'', pearl:'Pearl ', black:'Black pearl! ', chest:'Chest! ' }[kind];
+  pop(g, word + '+' + fmt(v), kind === 'coin' ? '#f2d58a' : '#fff3d6');
+}
+function updateWork(g, sh, dt){
+  const w = g.work, e = w.e;
+  if (!workable(e) || itemDist(e, g.x, g.y) > REACH + 2){ g.work = null; return; }
+  w.t += dt;
+  if (e.kind === 'oyster'){
+    if (w.t >= OYSTER_T){                          // held too long: it clamps shut for good
+      e.shut = true; g.work = null; g.air -= CLAMP_COST; g.shake = SHAKE_T / 2;
+      noise(g, sh, e.x, e.y); pop(g, 'Clamped! −' + CLAMP_COST + 's', '#ff6b5c');
+    }
+  } else if (e.kind === 'chest') e.needle = (e.needle + dt / LOCK_TURN) % 1;
+  else if (e.kind === 'net'){
+    e.cut += dt / netTime(g);
+    if (e.cut >= 1){ e.gone = true; g.work = null; pop(g, 'Cut free', '#e9efe9'); }
+  } else if (e.kind === 'air'){
+    const a = Math.min(GULP_RATE * dt, e.left, Math.max(0, g.airMax - g.air));
+    e.left -= a; g.air += a; w.got += a;
+    if (e.left <= 1e-6){ e.left = 0; release(g, sh); }
+  }
+}
+function release(g, sh){                           // letting go resolves the timing games
+  const w = g.work;
+  if (!w) return;
+  g.work = null;
+  const e = w.e;
+  if (e.kind === 'oyster'){
+    const r = oysterResult(w.t / OYSTER_T, g.helm.id === 'wren');
+    if (r === 'none') return;
+    e.open = true; sh.traces.push(e); take(g, sh, r, e);
+  } else if (e.kind === 'chest'){
+    const lw = lockWin(g);
+    if (w.t < LOCK_GRACE * LOCK_TURN) return;      // too short to count: nothing happens (like an early oyster)
+    if (inWindow(e.needle, e.win, lw)){
+      e.tumbler++;
+      if (e.tumbler >= TUMBLERS){ e.open = true; sh.traces.push(e); take(g, sh, 'chest', e); }
+      else { e.win = newWindow(e.needle, lw); popUnder(g, e, 'Click', '#f2d58a'); }
     } else {
-      const n = Math.random() < pTwo ? 2 : 1;
-      for (let i = 0; i < n; i++){ haz.push({ kind: Math.random() < pSahu ? 'sahu' : 'rock', lane:lanes[i] }); occupied.add(lanes[i]); }
+      e.tumbler = 0; e.win = newWindow(e.needle, lw);
+      noise(g, sh, e.x, e.y); popUnder(g, e, 'Missed', '#ff6b5c');
     }
-    const safe = [0, 1, 2].filter(l => !occupied.has(l));
-    if (!safe.length) continue;
-    if (!safe.some(s => g.lastSafe.some(p => Math.abs(p - s) <= 1))) continue;   // always a reachable lane
-    for (const h of haz) addEnt(g, h, wy);
-    const r = Math.random(), tl = pick(safe);
-    if (r < 0.07) addEnt(g, { kind:'bubble', lane:tl }, wy);
-    else if (r < 0.65){
-      if (f > 50 && Math.random() < 0.08) addEnt(g, { kind:'chest', lane:tl }, wy);
-      else if (f > 20 && Math.random() < 0.22) addEnt(g, { kind:'pearl', lane:tl }, wy);
-      else {
-        addEnt(g, { kind:'coin', lane:tl }, wy);
-        if (Math.random() < 0.35){ addEnt(g, { kind:'coin', lane:tl }, wy + 45); addEnt(g, { kind:'coin', lane:tl }, wy + 90); }
-      }
-    }
-    g.lastSafe = safe;
+  } else if (e.kind === 'air' && w.got >= 0.5) pop(g, '+' + Math.round(w.got) + 's breath', '#9fdcff');
+}
+
+// ---------- sahuagin ----------
+function noise(g, sh, x, y){                       // everyone in earshot, not behind rock, swims over to look
+  g.rings.push({ x, y, t:0 });
+  for (const s of sh.sahus){
+    if (s.mode === 'hunt' || Math.hypot(s.x - x, s.y - y) > NOISE_R || !clearLine(sh, s.x, s.y, x, y)) continue;
+    s.mode = 'sus'; s.tx = x; s.ty = y; s.look = 0; s.ghost = false; s.stuck = 0;
+  }
+}
+function spotted(g){ g.quiet = 0; g.spotted = true; pop(g, 'Spotted!', '#ff6b5c'); }
+function caught(g, sh, s){
+  for (const o of sh.sahus) if (o.mode === 'hunt'){ o.mode = 'back'; o.meter = 0; }
+  g.work = null; g.tx = null; g.vx = g.vy = 0; g.inv = CAUGHT_INV; g.quiet = 0;
+  const home = { x0:g.x, y0:g.y, x1:sh.open, y1:TOP + ENTER_Y, t:0 };
+  if (g.ward){                                     // Caspian: blink into the nearest kelp, gold intact
+    g.ward = false;
+    const kp = sh.kelp.reduce((a, o) => !a || Math.hypot(o.x - g.x, o.y - g.y) < Math.hypot(a.x - g.x, a.y - g.y) ? o : a, null);
+    if (kp){ g.x = kp.x; g.y = kp.y; } else g.shove = home;
+    pop(g, 'Ward holds', '#8fa6ff');
     return;
   }
-  const l = pick([0, 1, 2]);                      // fallback: one rock, always passable
-  addEnt(g, { kind:'rock', lane:l }, wy);
-  g.lastSafe = [0, 1, 2].filter(x => x !== l);
+  g.shake = SHAKE_T; g.air -= CAUGHT_COST;
+  const before = g.gold;                           // takes a share of everything carried
+  g.coinGold = Math.floor(g.coinGold * (1 - STEAL));
+  for (const it of g.bag) it.val = Math.floor(it.val * (1 - STEAL));
+  regold(g);
+  const lost = before - g.gold;
+  pop(g, lost ? 'Robbed! −' + fmt(lost) + ' gold' : 'Caught! −' + CAUGHT_COST + 's', '#ff6b5c');
+  g.shove = home;
+}
+// swim straight at a point, sliding on rock; true once within `near` px
+function steer(sh, s, tx, ty, spd, dt, near){
+  const ex = tx - s.x, ey = ty - s.y, d = Math.hypot(ex, ey);
+  if (d <= Math.max(near, 0.5)) return true;
+  const step = Math.min(d, spd * dt), p = { x:s.x + ex / d * step, y:s.y + ey / d * step };
+  slide(sh, p, SAHU_R, s.ghost);
+  const moved = Math.hypot(p.x - s.x, p.y - s.y);
+  s.stuck = moved < step * 0.3 ? s.stuck + dt : 0;
+  if (s.stuck > GHOST_T && s.mode !== 'hunt') s.ghost = true;   // a returning sahuagin slips round rock it's stuck on
+  if (moved > 0.01) s.ang = turn(s.ang, Math.atan2(p.y - s.y, p.x - s.x), dt * 10);
+  s.x = p.x; s.y = p.y;
+  return false;
+}
+function updateSahu(g, sh, s, dt){
+  const k = s.alert ? ALERT_SPD_K : 1, spd = sh.spd * k;
+  s.alertT = Math.max(0, s.alertT - dt);
+  if (s.mode === 'patrol'){
+    s.pt += dt * k;
+    Object.assign(s, patrolPose(s.P, s.pt));
+  } else if (s.mode === 'sus'){                    // swim to the noise, look round, go back
+    if (s.look > 0){
+      s.look -= dt; s.ang = s.lookA + SWEEP * Math.sin(TAU * (1 - s.look / LOOK_T));
+      if (s.look <= 0){ s.mode = 'back'; s.stuck = 0; }
+    } else if (steer(sh, s, s.tx, s.ty, spd, dt, LISTEN_R) || s.stuck > GHOST_T){ s.look = LOOK_T; s.lookA = s.ang; s.ghost = false; s.stuck = 0; }   // stuck short of it: look from there
+  } else if (s.mode === 'back'){
+    const p = patrolPose(s.P, s.pt);
+    if (steer(sh, s, p.x, p.y, spd, dt, 0)){ s.mode = 'patrol'; s.ghost = false; }   // stuck on rock or net: it ghosts through (steer)
+  } else if (s.mode === 'hunt'){                   // chase where it last saw her
+    const seen = !g.hidden && clearLine(sh, s.x, s.y, g.x, g.y);
+    if (seen){ s.tx = g.x; s.ty = g.y; }
+    steer(sh, s, s.tx, s.ty, HUNT_K * SWIM, dt, 0);
+    s.lose = seen && s.stuck <= GHOST_T ? 0 : s.lose + dt;   // pinned on rock or net, it gives up even if it can see her
+    if (s.lose >= LOSE_T){ s.mode = 'back'; s.meter = 0; s.stuck = 0; }
+    else if (g.inv <= 0 && !g.shove && Math.hypot(g.x - s.x, g.y - s.y) < SAHU_R + g.r) caught(g, sh, s);
+    return;
+  }
+  // the meter fills while she's in plain sight in the cone, and drains at half speed
+  const t = s.alert ? ALERT_DETECT_T : DETECT_T;
+  if (!g.hidden && g.inv <= 0 && !g.shove && sees(sh, s, g.x, g.y)) s.meter += dt / t;
+  else s.meter = Math.max(0, s.meter - dt / (2 * t));
+  if (s.meter >= 1){ s.meter = 1; s.mode = 'hunt'; s.tx = g.x; s.ty = g.y; s.lose = 0; s.ghost = false; s.stuck = 0; spotted(g); return; }
+  if (!s.alert && s.mode === 'patrol' && sh.traces.some(e => sees(sh, s, e.x, e.y))){ s.alert = true; s.alertT = ALERT_FLASH; }   // an opened shell: alerted for good
 }
 
 // ---------- update ----------
-function pop(g, text, color){ g.pops.push({ text, x:g.x, y:g.camY - 56, color, t:1.1 }); }
-function collect(g, e){
-  if (e.kind === 'bubble'){
-    g.air = Math.min(g.airMax, g.air + BUBBLE_AIR);
-    pop(g, '+' + BUBBLE_AIR + 's breath', '#9fdcff');
-    return;
+// A rock between her and the tap: aim at the point around it that makes the trip shortest, so she swims round
+// instead of pressing into it. One rock at a time, no pathfinding; she keeps the same way round while that rock blocks.
+function aimPast(g, sh){
+  const hitT = (o, x0, y0, x1, y1) => segEllipseT({ x:o.x, y:o.y, rx:o.rx + g.r - DETOUR_SKIN, ry:o.ry + g.r - DETOUR_SKIN }, x0, y0, x1, y1);
+  let rock = null, bt = 2;
+  for (const o of sh.rocks){ const t = hitT(o, g.x, g.y, g.tx, g.ty); if (t >= 0 && t < bt){ bt = t; rock = o; } }
+  if (!rock){ g.det = null; return [g.tx, g.ty]; }
+  const cands = [];
+  for (let i = 0; i < 8; i++){ const a = i * Math.PI / 4; cands.push([rock.x + Math.cos(a) * (rock.rx + g.r + DETOUR_GAP), rock.y + Math.sin(a) * (rock.ry + g.r + DETOUR_GAP)]); }
+  // only points she can swim straight to: she works her way round the rock one step at a time
+  const ok = ([x, y]) => x > X0 + g.r && x < X1 - g.r && y > TOP + g.r && y < BOT - g.r && Math.hypot(x - g.x, y - g.y) > DETOUR_GAP
+    && !sh.rocks.some(o => inEllipse(o, x, y, g.r) || hitT(o, g.x, g.y, x, y) >= 0);
+  const cost = ([x, y]) => Math.hypot(x - g.x, y - g.y) + Math.hypot(g.tx - x, g.ty - y);
+  let k = g.det && g.det.rock === rock && ok(cands[g.det.k]) ? g.det.k : -1;
+  if (k < 0){ let best = Infinity; cands.forEach((c, i) => { if (ok(c) && cost(c) < best){ best = cost(c); k = i; } }); }
+  if (k < 0){ g.det = null; return [g.tx, g.ty]; }
+  g.det = { rock, k };
+  return cands[k];
+}
+function moveDiver(g, sh, dt){
+  const spd = swimSpd(g);
+  let wx = 0, wy = 0;
+  const kx = keys.has('right') - keys.has('left'), ky = keys.has('down') - keys.has('up');
+  if (kx || ky){ const l = Math.hypot(kx, ky); wx = kx / l * spd; wy = ky / l * spd; g.tx = null; }
+  else if (g.tx !== null){
+    const ex = g.tx - g.x, ey = g.ty - g.y, d = Math.hypot(ex, ey);
+    if (d < ARRIVE) g.tx = null;
+    else {
+      const [ax, ay] = aimPast(g, sh), dx = ax - g.x, dy = ay - g.y, da = Math.hypot(dx, dy) || 1;
+      const v = Math.min(spd, d * ARRIVE_K); wx = dx / da * v; wy = dy / da * v;
+    }
   }
-  g.loot++;
-  g.chain += g.helm.id === 'gilgamesh' ? 2 : 1;
-  g.combo = Math.min(8, 1 + Math.floor(g.chain / 2));
-  g.bestCombo = Math.max(g.bestCombo, g.combo);
-  const perk = g.helm.id === 'vaelor' ? 1.25 : g.helm.id === 'mcnalty' ? 0.9 : 1;
-  const v = Math.round(LOOT[e.kind] * depthMult(fath(e.wy)) * g.combo * perk);
-  g.gold += v;
-  pop(g, '+' + fmt(v) + (g.combo > 1 ? '  ×' + g.combo : ''), e.kind === 'coin' ? '#f2d58a' : '#fff3d6');
-}
-function hit(g, e){
-  if (g.ward){ g.ward = false; g.inv = 1.2; pop(g, 'Ward holds', '#8fa6ff'); return; }
-  g.chain = 0; g.combo = 1; g.inv = 1.4; g.shake = 0.35;
-  g.air -= COST[e.kind];
-  if (e.kind === 'net'){ g.snag = 0.7; pop(g, 'Snagged!  −' + COST.net + 's', '#ff6b5c'); }
-  else if (e.kind === 'sahu'){
-    const s = Math.floor(g.gold * STEAL); g.gold -= s;
-    pop(g, s ? 'Robbed! −' + fmt(s) + ' gold' : 'Sahuagin!  −' + COST.sahu + 's', '#ff6b5c');
-  } else pop(g, pick(ROCK_WORDS) + '  −' + COST.rock + 's', '#ff6b5c');
-}
-function surface(){
-  const g = G;
-  if (!g || state !== 'run' || g.dir !== 1 || g.depth < 2 * FATHOM) return;
-  g.dir = -1; g.sahuT = rand(0.8, 1.6);
-  pop(g, 'Kick for the surface!', '#e9efe9');
+  if (g.work || g.snag > 0){ wx = wy = 0; g.vx = g.vy = 0; }
+  const k = Math.min(1, ACCEL * dt);
+  g.vx += (wx - g.vx) * k; g.vy += (wy - g.vy) * k;
+  const p = { x:g.x + g.vx * dt, y:g.y + g.vy * dt };
+  const net = slide(sh, p, g.r);
+  if (g.shelf === 1 && g.maxShelf < BANK_SHELF && p.y < TOP - 2){
+    p.y = TOP - 2;
+    if (!g.toldDeep){ g.toldDeep = true; pop(g, 'Dive deeper first', '#e9efe9'); }
+  }
+  for (const n of sh.items) if (n.kind === 'net' && !n.gone){
+    const was = n.touch;
+    n.touch = n === net || (was && itemDist(n, p.x, p.y) < g.r + NET_W / 2 + NET_CLEAR);
+    if (n.touch && !was && g.snag <= 0){           // swam into it: snagged, and the floats rattle
+      g.snag = SNAG_T; g.vx = g.vy = 0; g.tx = null; pop(g, 'Snagged!', '#ff6b5c');
+      const [qx, qy] = segNear(n.x0, n.y0, n.x1, n.y1, p.x, p.y); noise(g, sh, qx, qy);
+    }
+  }
+  const want = Math.hypot(wx, wy) * dt, got = Math.hypot(p.x - g.x, p.y - g.y);
+  g.stuckT = g.tx !== null && want > 0.3 && got < want * 0.25 ? g.stuckT + dt : 0;
+  if (g.stuckT > STUCK_T) g.tx = null;             // tapped into rock: stop pushing
+  if (dt > 0){                                     // what rock stopped doesn't build up
+    const ax = (p.x - g.x) / dt, ay = (p.y - g.y) / dt;
+    if (Math.abs(ax) < Math.abs(g.vx)) g.vx = ax;
+    if (Math.abs(ay) < Math.abs(g.vy)) g.vy = ay;
+  }
+  g.x = p.x; g.y = p.y;
+  if (g.work){ const e = g.work.e; g.ang = turn(g.ang, Math.atan2(e.y - g.y, e.x - g.x), dt * 8); }
+  else if (Math.hypot(g.vx, g.vy) > 20) g.ang = turn(g.ang, Math.atan2(g.vy, g.vx), dt * 10);
+  // through the opening (or out under the skiff) / down the crevice
+  if (g.y < TOP - PASS_D){
+    if (g.shelf > 1) startPan(g, -1);
+    else if (g.maxShelf >= BANK_SHELF) endRun(g, true);
+  } else if (sh.crev !== null && g.y > BOT + PASS_D) startPan(g, 1);
 }
 function update(g, dt){
   g.t += dt;
-  g.inv = Math.max(0, g.inv - dt); g.shake = Math.max(0, g.shake - dt);
-  g.hint = Math.max(0, g.hint - dt); g.snag = Math.max(0, g.snag - dt);
-
-  if (g.dir === 1){
-    g.spd = DOWN_MIN + (DOWN_MAX - DOWN_MIN) * dd(g.depth);
-    if (g.snag <= 0) g.depth += g.spd * dt;
-    g.maxDepth = Math.max(g.maxDepth, g.depth);
-    while (g.nextRow < g.depth + (H - DIVE_Y) + 120){
-      spawnRow(g, g.nextRow);
-      g.nextRow += 240 - 80 * dd(g.nextRow);       // row gap 240 → 160 px
-    }
+  g.hint = Math.max(0, g.hint - dt); g.shake = Math.max(0, g.shake - dt);
+  for (const q of g.pops){ q.t -= dt; q.y -= 34 * dt; }
+  g.pops = g.pops.filter(q => q.t > 0);
+  for (const q of g.rings) q.t += dt;
+  g.rings = g.rings.filter(q => q.t < 1);
+  if (g.pan){                                      // the world waits for the camera; breath doesn't
+    g.pan.t += dt;
+    g.air -= dt * drain(fathAt(Math.min(g.pan.from, g.pan.to), BOT));
+    if (g.pan.t >= PAN_T) g.pan = null;           // a finger still down waits to move before it steers (freezePress)
   } else {
-    g.spd = upSpd(g);
-    if (g.snag <= 0) g.depth = Math.max(0, g.depth - g.spd * dt);
-    g.sahuT -= dt;
-    if (g.sahuT <= 0 && g.depth > RISE_Y + 3 * FATHOM){   // sahuagin give chase on the way up
-      g.sahuT = rand(1.4, 2.8);
-      addEnt(g, { kind:'sahu', lane:pick([0, 1, 2]) }, g.depth - RISE_Y - 60);
+    const sh = shelfOf(g);
+    g.inv = Math.max(0, g.inv - dt); g.snag = Math.max(0, g.snag - dt);
+    if (press && press.mode === 'pending' && (press.age += dt * 1000) >= HOLD_MS){   // still and long enough: a hold
+      if (!g.work && !g.shove && workable(press.e) && itemDist(press.e, g.x, g.y) <= REACH){ press.mode = 'work'; startWork(g, press.e, press.x0, press.y0); }
+      else { press.mode = 'swim'; aimAt(g, press.x, press.y); }
+    }
+    if (g.shove){                                  // caught: a quick slide back to the entrance
+      const s = g.shove, u = Math.min(1, (s.t += dt) / SHOVE_T), e = u * (2 - u);
+      g.x = s.x0 + (s.x1 - s.x0) * e; g.y = s.y0 + (s.y1 - s.y0) * e;
+      if (u >= 1) g.shove = null;
+    } else moveDiver(g, sh, dt);
+    if (g.over) return;
+    if (!g.pan){
+      g.hidden = hiddenAt(sh, g.x, g.y);
+      g.maxF = Math.max(g.maxF, fathAt(g.shelf, g.y));
+      if (g.work) updateWork(g, sh, dt);
+      for (const e of sh.items){
+        if (e.kind !== 'coin') continue;
+        e.r += dt * 4;
+        if (!e.got && Math.hypot(e.x - g.x, e.y - g.y) < g.r + COIN_R){ e.got = true; take(g, sh, 'coin', e); }
+      }
+      sh.items = sh.items.filter(e => !e.got);
+      for (const s of sh.sahus) updateSahu(g, sh, s, dt);
+      if (press && press.mode === 'work' && !g.work) freezePress();   // cut free, clamped, pocket dry, caught
+      if (!(g.shelf === 1 && g.y < TOP)) g.air -= dt * drain(fathAt(g.shelf, g.y));   // no drain at the surface
     }
   }
-  g.camY += ((g.dir === 1 ? DIVE_Y : RISE_Y) - g.camY) * Math.min(1, dt * 2.5);
-  g.x += (LANES[g.lane] - g.x) * Math.min(1, dt * 18);
-
-  const dw = g.helm.id === 'wren' ? 20 : 30, dh = 46;
-  const reach = g.dir === 1 ? H - DIVE_Y - 30 : RISE_Y - 20;   // how far ahead a sahuagin wakes
-  for (const e of g.ents){
-    const ahead = (e.wy - g.depth) * g.dir;        // > 0: in front of the diver
-    if (e.kind === 'sahu'){
-      if (e.mode === 'lurk'){
-        if (ahead > 0 && ahead < reach){ e.mode = 'warn'; e.vdir = -g.dir; }
-        else if (ahead < -300) e.dead = true;
-        continue;
-      }
-      if (e.mode === 'warn'){
-        e.warn -= dt;
-        if (e.warn <= 0){ e.mode = 'surge'; e.v = Math.max(110, g.spd * 0.4); }
-        continue;
-      }
-      e.wy += e.vdir * e.v * dt;
-      if ((e.wy - g.depth) * e.vdir > 300) e.dead = true;
-    }
-    if (e.kind === 'net') e.x = LANES[e.a] + (LANES[e.b] - LANES[e.a]) * (1 - Math.cos(g.t * e.sp + e.ph)) / 2;
-    if (e.r !== undefined) e.r += dt * 4;
-    if (Math.abs(e.x - g.x) < (e.w + dw) / 2 && Math.abs(e.wy - g.depth) < (e.h + dh) / 2){
-      if (PICKUPS.has(e.kind)){ e.dead = true; collect(g, e); }
-      else if (g.inv <= 0) hit(g, e);
-    }
-  }
-  g.ents = g.ents.filter(e => !e.dead);
-  for (const p of g.pops){ p.t -= dt; p.y -= 34 * dt; }
-  g.pops = g.pops.filter(p => p.t > 0);
-
-  g.air -= dt * drain(g.depth);
-  if (g.air <= 0){ g.air = 0; endRun(g, false); return; }
-  if (g.dir === -1 && g.depth <= 0) endRun(g, true);
+  g.tick = breathUp(g.cove, g.shelf, g.x, g.y, swimSpd(g));
+  if (g.air <= 0){ g.air = 0; endRun(g, false); }
 }
 
 // ---------- render ----------
-function drawCove(depth, camY, tint){
-  const k = Math.min(1, fath(tint) / 80);
+function drawWater(sh, now){
+  const k0 = Math.min(1, fathAt(sh.k, TOP) / 80), k1 = Math.min(1, fathAt(sh.k, BOT) / 80);   // darker with depth
   const gr = ctx.createLinearGradient(0, 0, 0, H);
-  gr.addColorStop(0, mix([16, 52, 56], [4, 14, 15], k)); gr.addColorStop(1, mix([9, 34, 37], [1, 6, 6], k));
+  gr.addColorStop(0, mix([16, 52, 56], [4, 14, 15], k0)); gr.addColorStop(1, mix([9, 34, 37], [1, 6, 6], k1));
   ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
-
-  const sy = camY - depth;                        // screen y of the waterline
-  if (k < 0.5){                                   // sun shafts near the top
-    ctx.fillStyle = `rgba(217,228,232,${0.05 * (1 - 2 * k)})`;
+  if (sh.k === 1){                                 // sun shafts through the opening
+    ctx.fillStyle = 'rgba(217,228,232,.05)';
     for (let i = 0; i < 3; i++){
-      const x0 = 60 + i * 110 + Math.sin(depth * 0.004 + i) * 20, top = Math.max(0, sy);
-      ctx.beginPath(); ctx.moveTo(x0, top); ctx.lineTo(x0 + 30, top); ctx.lineTo(x0 + 90, H); ctx.lineTo(x0 + 20, H); ctx.closePath(); ctx.fill();
+      const x0 = sh.open - 120 + i * 85 + Math.sin(now * 0.0004 + i) * 14;
+      ctx.beginPath(); ctx.moveTo(x0, SURF_Y); ctx.lineTo(x0 + 30, SURF_Y); ctx.lineTo(x0 + 110, H); ctx.lineTo(x0 + 30, H); ctx.closePath(); ctx.fill();
     }
   }
-  // marine snow
-  ctx.fillStyle = 'rgba(217,228,232,.22)';
+  ctx.fillStyle = 'rgba(217,228,232,.22)';         // marine snow
   for (let j = 0; j < 26; j++){
-    const x = hash(j) * W, y = (((hash(j + 50) * H * 2 - depth * 0.6) % H) + H) % H;
+    const x = hash(j + sh.k * 40) * W, y = (((hash(j + 50 + sh.k * 40) * H + now * 0.008 * (1 + hash(j + 9))) % H) + H) % H;
     ctx.fillRect(x, y, 1.6, 1.6);
   }
-  // cove walls
-  ctx.fillStyle = '#152426'; ctx.strokeStyle = '#2c4143'; ctx.lineWidth = 1.5;
-  const seg = 40, first = Math.floor((depth - camY) / seg) - 1;
+  ctx.fillStyle = '#152426'; ctx.strokeStyle = '#2c4143'; ctx.lineWidth = 1.5;   // cove walls
   for (const side of [0, 1]){
-    ctx.beginPath();
-    let started = false;
-    for (let s = first; s * seg - depth + camY < H + seg; s++){
-      if (s < 0) continue;
-      const y = s * seg - depth + camY, wv = 8 + hash(s * 3 + side * 101) * 16;
-      const x = side ? W - wv : wv;
-      if (!started){ ctx.moveTo(side ? W : 0, y); started = true; }
-      ctx.lineTo(x, y);
-    }
-    if (started){ ctx.lineTo(side ? W : 0, H + seg); ctx.closePath(); ctx.fill(); ctx.stroke(); }
+    ctx.beginPath(); ctx.moveTo(side ? W : 0, -10);
+    for (let s = 0; s <= 17; s++){ const wv = 6 + hash(s * 3 + side * 101 + sh.k * 7) * 10; ctx.lineTo(side ? W - wv : wv, s * 40 - 10); }
+    ctx.lineTo(side ? W : 0, H + 10); ctx.closePath(); ctx.fill(); ctx.stroke();
   }
-  // the surface and the skiff
-  if (sy > -60){
-    ctx.fillStyle = '#0b1d20'; ctx.fillRect(0, 0, W, Math.max(0, sy));
-    ctx.strokeStyle = 'rgba(217,228,232,.55)'; ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let x = 0; x <= W; x += 10) ctx.lineTo(x, sy + Math.sin(x * 0.07 + depth * 0.01) * 2);
+  if (sh.k === 1){                                 // the surface, the skiff and its crab line
+    const sk = ctx.createLinearGradient(0, 0, 0, SURF_Y);
+    sk.addColorStop(0, 'rgb(46,70,74)'); sk.addColorStop(1, 'rgb(98,122,122)');
+    ctx.fillStyle = sk; ctx.fillRect(0, 0, W, SURF_Y);
+    ctx.strokeStyle = 'rgba(217,228,232,.55)'; ctx.lineWidth = 2; ctx.beginPath();
+    for (let x = 0; x <= W; x += 10) ctx.lineTo(x, SURF_Y + Math.sin(x * 0.07 + now * 0.002) * 2);
     ctx.stroke();
-    ctx.fillStyle = '#6b4a2b'; ctx.strokeStyle = '#3b2817'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(110, sy - 6); ctx.lineTo(250, sy - 6); ctx.quadraticCurveTo(240, sy + 16, 200, sy + 18); ctx.lineTo(150, sy + 18); ctx.quadraticCurveTo(118, sy + 14, 110, sy - 6); ctx.closePath(); ctx.fill(); ctx.stroke();
+    const o = sh.open - 180, sy = SURF_Y;
     ctx.strokeStyle = 'rgba(185,173,146,.5)'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(240, sy + 4); ctx.lineTo(244, sy + 220); ctx.stroke();   // crab line
-    ctx.fillStyle = '#f2b544'; ctx.beginPath(); ctx.arc(126, sy - 12, 3.5, 0, 6.283); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(o + 205, sy + 4); ctx.lineTo(o + 207, TOP + 60); ctx.stroke();
+    ctx.fillStyle = '#6b4a2b'; ctx.strokeStyle = '#3b2817'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(o + 110, sy - 6); ctx.lineTo(o + 250, sy - 6); ctx.quadraticCurveTo(o + 240, sy + 16, o + 200, sy + 18); ctx.lineTo(o + 150, sy + 18); ctx.quadraticCurveTo(o + 118, sy + 14, o + 110, sy - 6); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#f2b544'; ctx.beginPath(); ctx.arc(o + 126, sy - 12, 3.5, 0, TAU); ctx.fill();
   }
 }
-function drawDiver(x, y, helm, dir, alpha, now){
+function drawBands(sh, now){                       // the rock ceiling and floor, with the opening and crevice
+  for (const top of [true, false]){
+    const gx = top ? sh.open : sh.crev, edge = top ? TOP : BOT, far = top ? (sh.k === 1 ? SURF_Y + 14 : -10) : H + 10;
+    const parts = gx === null ? [[-10, W + 10]] : [[-10, gx - GAP_W / 2], [gx + GAP_W / 2, W + 10]];
+    if (gx !== null){                              // the way through: darker water, and a faint arrow
+      const y0 = top ? far : BOT, y1 = top ? TOP : H, dg = ctx.createLinearGradient(0, y0, 0, y1);
+      dg.addColorStop(top ? 1 : 0, 'rgba(1,6,6,0)'); dg.addColorStop(top ? 0 : 1, sh.k === 1 && top ? 'rgba(98,122,122,.0)' : 'rgba(1,6,6,.75)');
+      ctx.fillStyle = dg; ctx.fillRect(gx - GAP_W / 2, y0, GAP_W, y1 - y0);
+      const a = 0.25 + 0.15 * Math.sin(now * 0.004), ay = top ? TOP + 14 : BOT - 14, d = top ? -1 : 1;
+      ctx.strokeStyle = `rgba(233,239,233,${a})`; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(gx - 9, ay - d * 4); ctx.lineTo(gx, ay + d * 4); ctx.lineTo(gx + 9, ay - d * 4); ctx.stroke();
+    }
+    ctx.fillStyle = '#152426'; ctx.strokeStyle = '#2c4143'; ctx.lineWidth = 1.5;
+    for (const [a, b] of parts){
+      ctx.beginPath(); ctx.moveTo(a, far);
+      for (let x = a, i = 0; ; x += 12, i++){
+        const xx = Math.min(x, b), wv = (hash(sh.k * 97 + i * 1.7 + (top ? 0 : 500) + a) - 0.3) * 5;
+        ctx.lineTo(xx, edge + (top ? wv : -wv));
+        if (xx >= b) break;
+      }
+      ctx.lineTo(b, far); ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+  }
+}
+function drawRock(o){
+  ctx.fillStyle = 'rgba(0,0,0,.25)';
+  ctx.beginPath(); ctx.ellipse(o.x, o.y + o.ry * 0.3, o.rx * 1.05, o.ry, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#263536'; ctx.strokeStyle = '#4a6264'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++){
+    const a = i / 10 * TAU, r = 1.04 + 0.1 * Math.sin(o.seed * 20 + i * 3.1);
+    const px = o.x + Math.cos(a) * o.rx * r, py = o.y + Math.sin(a) * o.ry * r;
+    i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+  }
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#3fb27f'; ctx.globalAlpha = 0.5;   // a little weed
+  ctx.beginPath(); ctx.ellipse(o.x - o.rx * 0.35, o.y - o.ry * 0.55, 3, 8, 0.4, 0, TAU); ctx.ellipse(o.x + o.rx * 0.45, o.y - o.ry * 0.4, 2.5, 6, -0.3, 0, TAU); ctx.fill();
+  ctx.globalAlpha = 1;
+}
+function drawKelpBed(o){                           // the hiding zone, faintly
+  ctx.fillStyle = 'rgba(40,120,75,.2)';
+  ctx.beginPath(); ctx.ellipse(o.x, o.y, o.rx, o.ry, 0, 0, TAU); ctx.fill();
+}
+function drawFronds(sh, now){
+  ctx.save(); ctx.lineCap = 'round';
+  for (const o of sh.kelp){
+    const n = Math.max(3, Math.round(o.rx / 7));
+    for (let i = 0; i < n; i++){
+      const u = n > 1 ? i / (n - 1) * 1.6 - 0.8 : 0, x = o.x + u * o.rx, hy = o.ry * Math.sqrt(Math.max(0, 1 - u * u));
+      const top = o.y - hy * (0.75 + 0.25 * hash(i + o.seed * 50)), sw = Math.sin(now * 0.002 + i * 1.3 + o.seed * 6) * 8;
+      ctx.strokeStyle = i % 2 ? 'rgba(63,160,100,.8)' : 'rgba(40,128,80,.85)'; ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.moveTo(x, o.y + hy); ctx.quadraticCurveTo(x - sw, o.y, x + sw, top); ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+function drawCoin(x, y, r){
+  ctx.save(); ctx.translate(x, y); ctx.scale(Math.abs(Math.cos(r)) * 0.65 + 0.35, 1);
+  ctx.fillStyle = '#f2b544'; ctx.strokeStyle = '#a87a1c'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(0, 0, 12, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = '#c99626'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(0, 0, 7, 0, TAU); ctx.stroke();
+  ctx.restore();
+}
+function drawOyster(x, y, st){                     // st: ready | open | shut
+  ctx.fillStyle = st === 'open' ? '#c9b8a6' : '#7d6a58'; ctx.strokeStyle = '#4a3d31'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(x - 15, y); ctx.quadraticCurveTo(x, y + 14, x + 15, y); ctx.closePath(); ctx.fill(); ctx.stroke();
+  if (st === 'ready'){ ctx.fillStyle = '#efe9e4'; ctx.beginPath(); ctx.arc(x, y + 1, 4.5, 0, TAU); ctx.fill(); }
+  ctx.save(); ctx.translate(x - 15, y); ctx.rotate(st === 'open' ? -1.0 : st === 'ready' ? -0.28 : 0);
+  ctx.fillStyle = st === 'shut' ? '#56483c' : '#8a7663';
+  ctx.beginPath(); ctx.moveTo(0, 0); ctx.quadraticCurveTo(15, -15, 30, 0); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+function drawChest(x, y, open){
+  ctx.fillStyle = '#6b4a2b'; ctx.strokeStyle = '#3b2817'; ctx.lineWidth = 2;
+  if (open){                                       // lid thrown back, nothing inside
+    ctx.beginPath(); ctx.moveTo(x - 20, y - 8); ctx.lineTo(x - 26, y - 30); ctx.lineTo(x + 14, y - 30); ctx.lineTo(x + 20, y - 8); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.fillRect(x - 20, y - 8, 40, 22); ctx.strokeRect(x - 20, y - 8, 40, 22);
+    ctx.fillStyle = '#140d07'; ctx.fillRect(x - 17, y - 6, 34, 7);
+    return;
+  }
+  ctx.fillRect(x - 20, y - 8, 40, 22); ctx.strokeRect(x - 20, y - 8, 40, 22);
+  ctx.beginPath(); ctx.moveTo(x - 20, y - 8); ctx.quadraticCurveTo(x, y - 24, x + 20, y - 8); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#3b2817'; ctx.fillRect(x - 20, y - 2, 40, 4);
+  ctx.fillStyle = '#f2b544'; ctx.fillRect(x - 4, y - 5, 8, 9);
+}
+function drawAir(x, y, k, now){                    // k: share of the pocket left
+  if (k <= 0){ ctx.strokeStyle = 'rgba(159,220,255,.25)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y, 8, 0, TAU); ctx.stroke(); return; }
+  const s = 0.5 + 0.5 * Math.sqrt(k), wob = Math.sin(now * 0.004 + x) * 1.5;
+  ctx.strokeStyle = '#9fdcff'; ctx.fillStyle = 'rgba(159,220,255,.16)'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.ellipse(x, y, (12 + wob) * s, (12 - wob) * s, 0, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(x + 13 * s, y - 8 * s, 3.5 * s, 0, TAU); ctx.moveTo(x - 9 * s, y - 13 * s); ctx.arc(x - 12 * s, y - 13 * s, 2.5 * s, 0, TAU); ctx.stroke();
+  ctx.fillStyle = '#e9f7ff'; ctx.beginPath(); ctx.arc(x - 4 * s, y - 4 * s, 2.5 * s, 0, TAU); ctx.fill();
+}
+function drawNet(n){
+  const L = Math.hypot(n.x1 - n.x0, n.y1 - n.y0), hw = L / 2, hh = 7, cells = Math.max(3, Math.round(L / 10)), cw = L / cells;
+  ctx.save(); ctx.translate((n.x0 + n.x1) / 2, (n.y0 + n.y1) / 2); ctx.rotate(Math.atan2(n.y1 - n.y0, n.x1 - n.x0));
+  ctx.globalAlpha *= 1 - 0.6 * (n.cut || 0);
+  ctx.strokeStyle = 'rgba(185,173,146,.85)'; ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  for (let c = 0; c < cells; c++){ const i = -hw + c * cw; ctx.moveTo(i, -hh); ctx.lineTo(i + cw, hh); ctx.moveTo(i + cw, -hh); ctx.lineTo(i, hh); }
+  ctx.stroke();
+  ctx.strokeStyle = '#b9ad92'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-hw, -hh); ctx.lineTo(hw, -hh); ctx.moveTo(-hw, hh); ctx.lineTo(hw, hh); ctx.stroke();
+  ctx.fillStyle = '#b8352f';
+  for (let c = 0, m = Math.max(3, Math.round(L / 20)); c <= m; c++){ ctx.beginPath(); ctx.arc(-hw + c * L / m, -hh, 3.5, 0, TAU); ctx.fill(); }
+  ctx.restore();
+}
+function drawItem(e, now){
+  if (e.kind === 'coin') drawCoin(e.x, e.y, e.r);
+  else if (e.kind === 'oyster') drawOyster(e.x, e.y, e.open ? 'open' : e.shut ? 'shut' : 'ready');
+  else if (e.kind === 'chest') drawChest(e.x, e.y, e.open);
+  else if (e.kind === 'air') drawAir(e.x, e.y, e.left / GULP_MAX, now);
+  else if (e.kind === 'net' && !e.gone) drawNet(e);
+}
+function drawSahu(x, y, ang){
+  ctx.save(); ctx.translate(x, y); ctx.rotate(ang + Math.PI / 2);   // faces the way it looks
+  ctx.fillStyle = 'rgba(63,178,127,.18)';
+  ctx.beginPath(); ctx.ellipse(0, 4, 22, 26, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#3fb27f'; ctx.strokeStyle = '#1c6b48'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-9, 18); ctx.lineTo(-4, 26); ctx.lineTo(0, 20); ctx.lineTo(4, 26); ctx.lineTo(9, 18); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(0, 2, 10, 17, 0, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(-3, -12); ctx.quadraticCurveTo(0, -2, 0, 14); ctx.quadraticCurveTo(6, 0, 3, -12); ctx.closePath(); ctx.fillStyle = '#1c6b48'; ctx.fill();
+  ctx.fillStyle = '#f2d55c'; ctx.beginPath(); ctx.arc(-4, -10, 2, 0, TAU); ctx.arc(4, -10, 2, 0, TAU); ctx.fill();
+  ctx.restore();
+}
+function drawDiver(x, y, helm, ang, alpha, now, sc = DIVER_ART){
   ctx.save(); ctx.globalAlpha = alpha;
-  const gr = ctx.createRadialGradient(x, y, 4, x, y, 70);
-  gr.addColorStop(0, 'rgba(242,181,68,.35)'); gr.addColorStop(1, 'rgba(242,181,68,0)');
+  const gr = ctx.createRadialGradient(x, y, 4, x, y, 70);   // lantern glow
+  gr.addColorStop(0, 'rgba(242,181,68,.3)'); gr.addColorStop(1, 'rgba(242,181,68,0)');
   ctx.fillStyle = gr; ctx.fillRect(x - 70, y - 70, 140, 140);
-  ctx.translate(x, y);
-  if (dir === 1) ctx.rotate(Math.PI);             // head-first on the way down
+  ctx.translate(x, y); ctx.rotate(ang + Math.PI / 2); ctx.scale(sc, sc);   // head points the way she swims
   const kick = Math.sin(now * 0.012) * 4;
   ctx.strokeStyle = '#2b3f41'; ctx.lineWidth = 4; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(-4, 10); ctx.lineTo(-6 + kick, 24); ctx.moveTo(4, 10); ctx.lineTo(6 - kick, 24); ctx.stroke();
   ctx.fillStyle = '#1c2c2e';
-  ctx.beginPath(); ctx.ellipse(-6 + kick, 28, 4, 6, 0, 0, 6.283); ctx.ellipse(6 - kick, 28, 4, 6, 0, 0, 6.283); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(-6 + kick, 28, 4, 6, 0, 0, TAU); ctx.ellipse(6 - kick, 28, 4, 6, 0, 0, TAU); ctx.fill();
   ctx.strokeStyle = '#6b4a2b'; ctx.lineWidth = 3.5;
   ctx.beginPath(); ctx.moveTo(-8, -6); ctx.lineTo(-13, -18); ctx.moveTo(8, -6); ctx.lineTo(13, -18); ctx.stroke();
   ctx.fillStyle = '#6b4a2b'; ctx.strokeStyle = '#3b2817'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.ellipse(0, 1, 9, 13, 0, 0, 6.283); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(0, 1, 9, 13, 0, 0, TAU); ctx.fill(); ctx.stroke();
   ctx.strokeStyle = helm.color; ctx.lineWidth = 3;
   ctx.beginPath(); ctx.moveTo(-8, -5); ctx.lineTo(8, 6); ctx.stroke();
   ctx.fillStyle = '#b08a3e'; ctx.strokeStyle = '#6e5420'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.arc(0, -17, 7.5, 0, 6.283); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#14262a'; ctx.beginPath(); ctx.arc(0, -18, 4, 0, 6.283); ctx.fill();
-  ctx.fillStyle = '#f2b544'; ctx.beginPath(); ctx.arc(12, -20, 3, 0, 6.283); ctx.fill();
+  ctx.beginPath(); ctx.arc(0, -17, 7.5, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#14262a'; ctx.beginPath(); ctx.arc(0, -18, 4, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#f2b544'; ctx.beginPath(); ctx.arc(12, -20, 3, 0, TAU); ctx.fill();
   ctx.restore();
   ctx.save(); ctx.globalAlpha = alpha * 0.6; ctx.strokeStyle = '#d9e4e8'; ctx.lineWidth = 1;   // breath bubbles rise
   for (let i = 0; i < 3; i++){
-    const p = ((now * 0.04 + i * 15) % 45);
-    ctx.beginPath(); ctx.arc(x + Math.sin(now * 0.005 + i) * 3, y - dir * 20 - 10 - p, 1.5 + i * 0.6, 0, 6.283); ctx.stroke();
+    const q = (now * 0.04 + i * 15) % 45;
+    ctx.beginPath(); ctx.arc(x + Math.cos(ang) * 14 + Math.sin(now * 0.005 + i) * 3, y + Math.sin(ang) * 14 - 6 - q, 1.5 + i * 0.6, 0, TAU); ctx.stroke();
   }
   ctx.restore();
 }
-function drawEnt(e, y, now){
-  const x = e.x;
-  if (e.kind === 'rock'){
-    ctx.fillStyle = 'rgba(0,0,0,.25)';
-    ctx.beginPath(); ctx.ellipse(x, y + 8, 44, 30, 0, 0, 6.283); ctx.fill();
-    ctx.fillStyle = '#263536'; ctx.strokeStyle = '#4a6264'; ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let i = 0; i < 8; i++){
-      const a = i / 8 * 6.283, r = 24 + 10 * Math.sin(e.seed * 20 + i * 3.1);
-      const px = x + Math.cos(a) * r * 1.35, py = y + Math.sin(a) * r * 0.95;
-      i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+function drawShelf(sh, oy, now, fronds){
+  ctx.save(); ctx.translate(0, oy);
+  drawWater(sh, now);
+  for (const o of sh.kelp) drawKelpBed(o);
+  for (const o of sh.rocks) drawRock(o);
+  for (const e of sh.items) drawItem(e, now);
+  for (const s of sh.sahus) drawSahu(s.x, s.y, s.ang);
+  drawBands(sh, now);
+  if (fronds) drawFronds(sh, now);
+  ctx.restore();
+}
+function conePoly(sh, s){                          // the cone, cut short by rock
+  const pts = [[s.x, s.y]];
+  for (let i = 0; i <= CONE_RAYS; i++){
+    const a = s.ang - CONE_A + 2 * CONE_A * i / CONE_RAYS, ex = s.x + Math.cos(a) * CONE_R, ey = s.y + Math.sin(a) * CONE_R;
+    let t = 1;
+    for (const o of sh.rocks){ const h = segEllipseT(o, s.x, s.y, ex, ey); if (h >= 0 && h < t) t = h; }
+    pts.push([s.x + (ex - s.x) * t, s.y + (ey - s.y) * t]);
+  }
+  return pts;
+}
+function drawCones(sh){
+  for (const s of sh.sahus){
+    const hunt = s.mode === 'hunt', pts = conePoly(sh, s);
+    ctx.fillStyle = hunt ? 'rgba(255,107,92,.16)' : 'rgba(63,178,127,.16)'; ctx.strokeStyle = hunt ? 'rgba(255,107,92,.45)' : 'rgba(63,178,127,.45)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.fill(); ctx.stroke();
+  }
+}
+function drawMarks(sh, now){                       // ? while the meter fills, ! while hunting, red-gold once alerted
+  ctx.save(); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  for (const s of sh.sahus){
+    const x = s.x, y = s.y - 32 < TOP + 20 ? s.y + 34 : s.y - 32;   // the HUD covers the top of the screen
+    if (s.alert){
+      const k = 1 + s.alertT * 0.8;
+      ctx.fillStyle = '#d8743a'; ctx.strokeStyle = '#f2b544'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(x + 16, y + 6 - 5 * k); ctx.lineTo(x + 16 + 4 * k, y + 6); ctx.lineTo(x + 16, y + 6 + 5 * k); ctx.lineTo(x + 16 - 4 * k, y + 6); ctx.closePath(); ctx.fill(); ctx.stroke();
     }
-    ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#3fb27f'; ctx.globalAlpha = 0.5;   // a little weed
-    ctx.beginPath(); ctx.ellipse(x - 12, y - 14, 3, 9, 0.4, 0, 6.283); ctx.ellipse(x + 16, y - 10, 2.5, 7, -0.3, 0, 6.283); ctx.fill();
-    ctx.globalAlpha = 1;
-  } else if (e.kind === 'net'){
-    const hw = 31, hh = 19;
-    ctx.strokeStyle = 'rgba(185,173,146,.85)'; ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    for (let i = -hw; i < hw; i += 10){ ctx.moveTo(x + i, y - hh); ctx.lineTo(x + i + 10, y + hh); ctx.moveTo(x + i + 10, y - hh); ctx.lineTo(x + i, y + hh); }
-    ctx.stroke();
-    ctx.strokeStyle = '#b9ad92'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(x - hw, y - hh); ctx.lineTo(x + hw, y - hh); ctx.moveTo(x - hw, y + hh); ctx.lineTo(x + hw, y + hh); ctx.stroke();
-    ctx.fillStyle = '#b8352f';
-    for (let i = -hw; i <= hw; i += 20){ ctx.beginPath(); ctx.arc(x + i, y - hh, 3.5, 0, 6.283); ctx.fill(); }
-  } else if (e.kind === 'sahu'){
-    if (e.mode !== 'surge') return;               // ripples are drawn over the dark
-    ctx.save(); ctx.translate(x, y); if (e.vdir > 0) ctx.rotate(Math.PI);   // faces the way it swims
-    ctx.fillStyle = 'rgba(63,178,127,.18)';
-    ctx.beginPath(); ctx.ellipse(0, 4, 22, 26, 0, 0, 6.283); ctx.fill();
-    ctx.fillStyle = '#3fb27f'; ctx.strokeStyle = '#1c6b48'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(-9, 18); ctx.lineTo(-4, 26); ctx.lineTo(0, 20); ctx.lineTo(4, 26); ctx.lineTo(9, 18); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(0, 2, 10, 17, 0, 0, 6.283); ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-3, -12); ctx.quadraticCurveTo(0, -2, 0, 14); ctx.quadraticCurveTo(6, 0, 3, -12); ctx.closePath(); ctx.fillStyle = '#1c6b48'; ctx.fill();
-    ctx.fillStyle = '#f2d55c'; ctx.beginPath(); ctx.arc(-4, -10, 2, 0, 6.283); ctx.arc(4, -10, 2, 0, 6.283); ctx.fill();
-    ctx.restore();
-  } else if (e.kind === 'coin'){
-    ctx.save(); ctx.translate(x, y); ctx.scale(Math.abs(Math.cos(e.r)) * 0.65 + 0.35, 1);
-    ctx.fillStyle = '#f2b544'; ctx.strokeStyle = '#a87a1c'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(0, 0, 12, 0, 6.283); ctx.fill(); ctx.stroke();
-    ctx.strokeStyle = '#c99626'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(0, 0, 7, 0, 6.283); ctx.stroke();
-    ctx.restore();
-  } else if (e.kind === 'pearl'){
-    ctx.fillStyle = '#7d6a58'; ctx.strokeStyle = '#4a3d31'; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(x - 15, y + 4); ctx.quadraticCurveTo(x, y + 18, x + 15, y + 4); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#efe9e4'; ctx.strokeStyle = '#bfb3b8';
-    ctx.beginPath(); ctx.arc(x, y - 2, 8, 0, 6.283); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x - 3, y - 5, 2.2, 0, 6.283); ctx.fill();
+    if (s.mode === 'hunt'){
+      ctx.font = "700 26px 'Barlow Condensed', 'Arial Narrow', sans-serif"; ctx.fillStyle = '#ff6b5c';
+      ctx.fillText('!', x, y);
+    } else if (s.meter > 0 || s.mode === 'sus'){
+      ctx.fillStyle = 'rgba(4,17,15,.6)'; ctx.beginPath(); ctx.arc(x, y, 11, 0, TAU); ctx.fill();
+      ctx.font = "700 18px 'Barlow Condensed', 'Arial Narrow', sans-serif"; ctx.fillStyle = s.meter > 0 ? '#f2b544' : 'rgba(233,239,233,.7)';
+      ctx.fillText('?', x, y + 1);
+      if (s.meter > 0){ ctx.strokeStyle = '#f2b544'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(x, y, 12, -Math.PI / 2, -Math.PI / 2 + TAU * s.meter); ctx.stroke(); }
+    }
+  }
+  ctx.restore();
+}
+function ringAt(e){                                // e: {x, y} to sit above; never under the thumb; beside it near the top
+  let x = e.x, y = e.y - RING_UP;
+  if (y < TOP + RING_R + 6){ x = e.x + (e.x < W / 2 ? 1 : -1) * (RING_UP + 6); y = e.y; }
+  return [clamp(x, RING_R + 6, W - RING_R - 6), y];
+}
+function arc(x, y, r, a, b, color, lw){            // a, b: shares of a turn, clockwise from the top
+  ctx.strokeStyle = color; ctx.lineWidth = lw;
+  ctx.beginPath(); ctx.arc(x, y, r, -Math.PI / 2 + a * TAU, -Math.PI / 2 + b * TAU); ctx.stroke();
+}
+function drawHold(g, sh){
+  for (const e of sh.items){                       // within reach: a faint ring says "hold me"
+    if (!workable(e) || (g.work && g.work.e === e) || itemDist(e, g.x, g.y) > REACH) continue;
+    ctx.strokeStyle = 'rgba(242,181,68,.45)'; ctx.lineWidth = 1.5; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.arc(e.x, e.y, HIT_R, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
+  }
+  if (!g.work) return;
+  const w = g.work, e = w.e, [x, y] = ringAt({ x:w.ax, y:w.ay });
+  ctx.fillStyle = 'rgba(4,17,15,.55)'; ctx.beginPath(); ctx.arc(x, y, RING_R + 8, 0, TAU); ctx.fill();
+  arc(x, y, RING_R, 0, 1, 'rgba(217,228,232,.18)', 6);
+  if (e.kind === 'oyster'){
+    const A = arcs(g.helm.id === 'wren'), u = Math.min(1, w.t / OYSTER_T);
+    arc(x, y, RING_R, A.pearl[0], A.pearl[1], 'rgba(242,181,68,.6)', 7);
+    arc(x, y, RING_R, A.black[0], A.black[1], 'rgba(233,239,233,.7)', 9);
+    arc(x, y, RING_R, A.black[0], A.black[1], '#050505', 6);
+    arc(x, y, RING_R - 8, 0, u, '#f2b544', 4);
+    const a = -Math.PI / 2 + u * TAU;
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x + Math.cos(a) * RING_R, y + Math.sin(a) * RING_R, 3.5, 0, TAU); ctx.fill();
   } else if (e.kind === 'chest'){
-    ctx.fillStyle = '#6b4a2b'; ctx.strokeStyle = '#3b2817'; ctx.lineWidth = 2;
-    ctx.fillRect(x - 20, y - 8, 40, 22); ctx.strokeRect(x - 20, y - 8, 40, 22);
-    ctx.beginPath(); ctx.moveTo(x - 20, y - 8); ctx.quadraticCurveTo(x, y - 24, x + 20, y - 8); ctx.closePath(); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = '#3b2817'; ctx.fillRect(x - 20, y - 2, 40, 4);
-    ctx.fillStyle = '#f2b544'; ctx.fillRect(x - 4, y - 5, 8, 9);
-  } else if (e.kind === 'bubble'){
-    const wob = Math.sin(e.r) * 1.5;
-    ctx.strokeStyle = '#9fdcff'; ctx.fillStyle = 'rgba(159,220,255,.16)'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.ellipse(x, y, 12 + wob, 12 - wob, 0, 0, 6.283); ctx.fill(); ctx.stroke();
-    ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.arc(x + 13, y - 10, 4, 0, 6.283); ctx.moveTo(x - 9, y - 15); ctx.arc(x - 12, y - 15, 3, 0, 6.283); ctx.stroke();
-    ctx.fillStyle = '#e9f7ff'; ctx.beginPath(); ctx.arc(x - 4, y - 4, 2.5, 0, 6.283); ctx.fill();
-  }
+    const lw = lockWin(g);
+    arc(x, y, RING_R, e.win, e.win + lw, '#f2b544', 7);
+    const a = -Math.PI / 2 + e.needle * TAU;
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a) * (RING_R + 4), y + Math.sin(a) * (RING_R + 4)); ctx.stroke();
+    for (let i = 0; i < TUMBLERS; i++){
+      ctx.fillStyle = i < e.tumbler ? '#f2b544' : 'rgba(217,228,232,.3)';
+      ctx.beginPath(); ctx.arc(x - 10 + i * 10, y + RING_R + 14, 3.5, 0, TAU); ctx.fill();
+    }
+  } else if (e.kind === 'net') arc(x, y, RING_R, 0, e.cut, '#f2b544', 6);
+  else if (e.kind === 'air') arc(x, y, RING_R, 0, e.left / GULP_MAX, '#9fdcff', 6);
 }
-// drawn over the dark: sahuagin ripples always; pearls and chests glint
-function drawOver(e, y, now){
-  if (e.kind === 'sahu' && e.mode === 'warn'){
-    const k = 1 - e.warn / 0.55, sy = clamp(y, 16, H - 16);
-    ctx.strokeStyle = `rgba(63,178,127,${0.8 * (1 - k)})`; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.ellipse(e.x, sy, 10 + 30 * k, 4 + 10 * k, 0, 0, 6.283); ctx.stroke();
-  } else if (e.kind === 'pearl' || e.kind === 'chest'){
-    const tw = 0.35 + 0.35 * Math.sin(now * 0.006 + e.wy);
-    ctx.strokeStyle = `rgba(255,243,214,${tw})`; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(e.x - 7, y - 10); ctx.lineTo(e.x + 7, y - 10); ctx.moveTo(e.x, y - 17); ctx.lineTo(e.x, y - 3); ctx.stroke();
+function drawFx(g, now){                           // noise ripples and the swim target
+  for (const q of g.rings){
+    ctx.strokeStyle = `rgba(185,173,146,${0.8 * (1 - q.t)})`; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(q.x, q.y, 10 + 60 * q.t, 6 + 36 * q.t, 0, 0, TAU); ctx.stroke();
   }
-}
-function drawDark(g){
-  const k = Math.min(1, fath(g.depth) / 80);
-  const R = 620 - 390 * k;                         // lantern reach shrinks with depth
-  const gr = ctx.createRadialGradient(g.x, g.camY, R * 0.3, g.x, g.camY, R);
-  gr.addColorStop(0, 'rgba(1,6,6,0)'); gr.addColorStop(1, `rgba(1,6,6,${0.2 + 0.68 * k})`);
-  ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
+  if (g.tx !== null){
+    const r = 9 + Math.sin(now * 0.008) * 1.5;
+    ctx.strokeStyle = 'rgba(233,239,233,.55)'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(g.tx, g.ty, r, 0, TAU); ctx.stroke();
+    ctx.fillStyle = 'rgba(233,239,233,.55)'; ctx.beginPath(); ctx.arc(g.tx, g.ty, 2, 0, TAU); ctx.fill();
+  }
 }
 function drawPops(g){
   ctx.font = "700 20px 'Barlow Condensed', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center';
   for (const p of g.pops){
     ctx.globalAlpha = Math.min(1, p.t); ctx.fillStyle = p.color;
-    ctx.fillText(p.text, clamp(p.x, 70, 290), p.y);
+    ctx.fillText(p.text, clamp(p.x, 70, 290), Math.max(p.y, TOP + 20));
   }
   ctx.globalAlpha = 1;
 }
 function drawHint(g){
-  ctx.save(); ctx.globalAlpha = Math.min(1, g.hint / 1.5) * 0.7; ctx.fillStyle = '#e9efe9';
+  ctx.save(); ctx.globalAlpha = Math.min(1, g.hint / 1.5) * 0.75; ctx.fillStyle = '#e9efe9';
   ctx.font = "500 17px 'Barlow Condensed', 'Arial Narrow', sans-serif"; ctx.textAlign = 'center';
-  ctx.fillText('◀ tap', 50, 560); ctx.fillText('tap ▶', 310, 560);
+  ctx.fillText('tap to swim · hold on loot to work it · hide in kelp', 180, 600);
   ctx.restore();
 }
+let demo = null;                                   // the title screen's shelf, patrolling behind the menu
 function render(g, now){
   ctx.save();
   ctx.clearRect(0, 0, W, H);
   if (g && g.shake > 0){ const s = g.shake * 9; ctx.translate(rand(-s, s), rand(-s, s)); }
-  if (g){
-    drawCove(g.depth, g.camY, g.depth);
-    const vis = [];
-    for (const e of g.ents){
-      const y = e.wy - g.depth + g.camY;
-      if (y < -120 || y > H + 120) continue;
-      vis.push([e, y]); drawEnt(e, y, now);
+  if (g && g.pan){                                 // both shelves slide; the diver goes from one gap to the other
+    const p = g.pan, u = Math.min(1, p.t / PAN_T), e = u * u * (3 - 2 * u), dir = p.to - p.from, off = e * H * dir;
+    drawShelf(g.cove[p.from - 1], -off, now, true);
+    drawShelf(g.cove[p.to - 1], dir * H - off, now, true);
+    const ya = p.y0 - off, yb = g.y + dir * H - off;
+    drawDiver(p.x0 + (g.x - p.x0) * e, ya + (yb - ya) * e, g.helm, g.ang, 1, now, DIVER_ART * g.r / DIVER_R);
+    for (const [k, oy] of [[p.from, -off], [p.to, dir * H - off]]){   // the patrols are frozen, so their cones stay readable
+      ctx.save(); ctx.translate(0, oy); drawCones(g.cove[k - 1]); drawMarks(g.cove[k - 1], now); ctx.restore();
     }
+  } else if (g){
+    const sh = shelfOf(g);
+    drawShelf(sh, 0, now, false);
     const blink = g.inv > 0 ? (Math.sin(now * 0.04) > 0 ? 0.35 : 0.9) : 1;
-    drawDiver(g.x, g.camY, g.helm, g.dir, blink, now);
-    drawDark(g);
-    for (const [e, y] of vis) drawOver(e, y, now);
-    drawPops(g);
-    if (g.hint > 0) drawHint(g);
+    drawDiver(g.x, g.y, g.helm, g.ang, blink * (g.hidden ? 0.5 : 1), now, DIVER_ART * g.r / DIVER_R);
+    drawFronds(sh, now);
+    drawCones(sh); drawFx(g, now); drawHold(g, sh); drawMarks(sh, now);
   } else {
-    drawCove(now * 0.05, DIVE_Y, 12 * FATHOM);
-    drawDiver(180, 330 + Math.sin(now * 0.0015) * 4, HELMS[helmIdx], 1, 0.9, now);
+    if (!demo) demo = buildShelf(2, SHELF_T[1], false, Math.random);
+    for (const s of demo.sahus) Object.assign(s, patrolPose(s.P, now / 1000));
+    drawShelf(demo, 0, now, false);
+    drawDiver(demo.kelp[0].x, demo.kelp[0].y, HELMS[helmIdx], -Math.PI / 2 + Math.sin(now * 0.0015) * 0.2, 0.5, now);
+    drawFronds(demo, now); drawCones(demo);
   }
+  if (g){ drawPops(g); if (g.hint > 0 && !g.pan) drawHint(g); }
   ctx.restore();
 }
 
 // ---------- HUD + screens ----------
-const hud = $('hud'), hudScore = $('hudScore'), hudCombo = $('hudCombo'), hudDepth = $('hudDepth');
-const airFill = $('hudAirFill'), airNeed = $('hudAirNeed'), surfBtn = $('surfBtn');
-let lastDir = 0;
+const hud = $('hud'), hudScore = $('hudScore'), hudQuiet = $('hudCombo'), hudDepth = $('hudDepth');
+const airFill = $('hudAirFill'), airNeed = $('hudAirNeed');
+const nOf = (g, kind) => g.bag.filter(it => it.kind === kind).length;
 function updateHud(g){
   hudScore.textContent = fmt(g.gold);
-  hudCombo.textContent = g.combo > 1 ? '×' + g.combo + ' combo' : '';
-  hudDepth.textContent = Math.floor(fath(g.depth)) + ' fathoms';
-  const need = airNeeded(g);
+  const m = streakMult(g), q = m > 1 ? 'quiet ×' + m : '';
+  if (hudQuiet.textContent !== q) hudQuiet.textContent = q;
+  hudDepth.textContent = 'shelf ' + g.shelf + ' · ' + Math.floor(fathAt(g.shelf, g.y)) + ' fathoms';
+  const need = g.tick;
   airFill.style.width = (100 * g.air / g.airMax).toFixed(1) + '%';
   airNeed.style.left = Math.min(100, 100 * need / g.airMax).toFixed(1) + '%';
   airFill.classList.toggle('low', g.air < need);
   airFill.classList.toggle('warn', g.air >= need && g.air < need * 1.3 + 4);
-  if (g.dir !== lastDir){
-    lastDir = g.dir;
-    surfBtn.disabled = g.dir !== 1;
-    surfBtn.innerHTML = g.dir === 1 ? 'Surface &#9650;' : 'Kicking up&hellip;';
-  }
 }
 function showScreen(id){
   for (const s of ['title', 'howto', 'pause', 'over']) $(s).hidden = s !== id;
@@ -728,7 +1331,18 @@ async function loadFleet(){
 }
 
 // ---------- how to dive ----------
-const ICONS = { rock:[0.6, 4], net:[0.85, 0], sahu:[0.95, 0], coin:[1.6, 0], pearl:[1.5, 2], chest:[1.1, 4], bubble:[1.3, 4] };   // scale, y offset
+const ICONS = { sahu:[0.7, 2], kelp:[1, 0], oyster:[1.5, 2], chest:[1.1, 4], net:[1, 0], air:[1.3, 2], coin:[1.6, 0] };   // scale, y offset
+function drawIcon(kind){
+  if (kind === 'sahu'){
+    drawCones({ rocks:[], sahus:[{ x:0, y:4, ang:-Math.PI / 2, mode:'patrol' }] });
+    drawSahu(0, 4, -Math.PI / 2);
+  } else if (kind === 'kelp'){ const o = { x:0, y:2, rx:24, ry:26, seed:0.3 }; drawKelpBed(o); drawFronds({ kelp:[o] }, 0); }
+  else if (kind === 'oyster') drawOyster(0, 0, 'ready');
+  else if (kind === 'chest') drawChest(0, 0, false);
+  else if (kind === 'net') drawNet({ x0:-26, y0:0, x1:26, y1:0, cut:0 });
+  else if (kind === 'air') drawAir(0, 0, 1, 0);
+  else if (kind === 'coin') drawCoin(0, 0, 0.6);
+}
 function drawIcons(){
   const dpr = Math.min(window.devicePixelRatio || 1, 2), main = ctx;
   for (const cv of document.querySelectorAll('canvas[data-icon]')){
@@ -737,8 +1351,10 @@ function drawIcons(){
     ctx = cv.getContext('2d');
     const k = cv.width / 64;
     ctx.setTransform(k, 0, 0, k, 0, 0); ctx.clearRect(0, 0, 64, 64);
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, 64, 64); ctx.clip();
     ctx.translate(32, 32 + dy); ctx.scale(s, s);
-    drawEnt({ kind, x:0, wy:0, seed:0.37, r:0.6, a:1, b:1, mode:'surge', vdir:-1 }, 0, 0);
+    drawIcon(kind);
+    ctx.restore();
   }
   ctx = main;
 }
@@ -751,15 +1367,16 @@ function closeHow(){ state = 'title'; showScreen('title'); }
 
 // ---------- flow ----------
 function start(){
-  G = newRun(); lastDir = 0; state = 'run';
+  G = newRun(); clearInput(); state = 'run';
   showScreen(null); updateHud(G);
 }
-function pause(){ if (state !== 'run') return; state = 'pause'; showScreen('pause'); }
+function pause(){ clearInput(); if (state !== 'run') return; state = 'pause'; showScreen('pause'); }
 function resume(){ if (state !== 'pause') return; state = 'run'; showScreen(null); }
 function toHarbour(){ G = null; state = 'title'; renderHelms(); renderBoard(); showScreen('title'); loadFleet(); }
 function endRun(g, surfaced){
-  g.over = true; g.surfaced = surfaced; state = 'over';
-  const deep = Math.floor(fath(g.maxDepth));
+  g.over = true; g.surfaced = surfaced; state = 'over'; clearInput();
+  g.tokens = g.coins + g.bag.length;            // pieces brought up
+  const deep = Math.floor(g.maxF);
   const bonus = surfaced ? deep * DEPTH_BONUS : 0;
   g.score = surfaced ? Math.floor(g.gold) + bonus : 0;
   const prevBest = store.scores.length ? store.scores[0].score : 0;
@@ -768,10 +1385,13 @@ function endRun(g, surfaced){
   $('overCarryLbl').textContent = surfaced ? 'Carried up' : 'Lost to the cove';
   $('overCarry').textContent = fmt(g.gold);
   $('overBonus').textContent = surfaced ? fmt(bonus) : '—';
-  $('overDeep').textContent = deep + ' fathoms';
-  $('overCombo').textContent = '×' + g.bestCombo;
+  $('overDeep').textContent = 'shelf ' + g.maxShelf + ' · ' + deep + ' fathoms';
+  const haul = [count(g.coins, 'coin')];
+  for (const [kind, word] of [['pearl', 'pearl'], ['black', 'black pearl'], ['chest', 'chest']]) if (nOf(g, kind)) haul.push(count(nOf(g, kind), word));
+  $('overHaul').textContent = haul.join(' · ');
   $('overHelm').textContent = g.helm.name;
-  $('overBest').textContent = g.score > prevBest ? 'New best on this device.' : (prevBest ? 'Best on this device: ' + fmt(prevBest) : '');
+  const best = g.score > prevBest ? 'New best on this device.' : (prevBest ? 'Best on this device: ' + fmt(prevBest) : '');
+  $('overBest').textContent = (g.spotted ? '' : 'Never spotted. ') + best;
   $('nameIn').value = store.name || '';
   const btn = $('postBtn');
   btn.disabled = g.score <= 0;
@@ -781,9 +1401,9 @@ function endRun(g, surfaced){
 }
 async function saveScore(){
   const g = G; if (!g || g.saved || g.score <= 0) return;
-  const name = $('nameIn').value.trim().slice(0, 12) || 'Nobody';
+  const name = $('nameIn').value.replace(/[^\w .'-]/g, '').trim().slice(0, 12) || 'Nobody';   // the Worker's name rule
   g.saved = true; store.name = name;
-  const entry = { game:GAME_ID, name, score:g.score, helm:g.helm.id, dist:Math.floor(fath(g.maxDepth)), tokens:g.loot, ts:Date.now() };
+  const entry = { game:GAME_ID, name, score:g.score, helm:g.helm.id, dist:Math.floor(g.maxF), tokens:g.tokens, ts:Date.now() };
   store.scores.push(entry); store.scores.sort((a, b) => b.score - a.score); store.scores = store.scores.slice(0, 10); saveStore();
   const btn = $('postBtn'), st = $('postStatus');
   btn.disabled = true;
@@ -801,22 +1421,61 @@ async function saveScore(){
 }
 
 // ---------- input ----------
-const move = dir => { if (G && state === 'run' && G.snag <= 0) G.lane = clamp(G.lane + dir, 0, 2); };
+// One finger steers. A press on open water (or on loot out of reach) sets the swim target, and dragging moves it.
+// A press on a workable item in reach becomes a hold after HOLD_MS if it stays within DRIFT px; sooner, it's a tap.
+const ptrPos = ev => { const r = canvas.getBoundingClientRect(); return [(ev.clientX - r.left) / r.width * W, (ev.clientY - r.top) / r.height * H]; };
+canvas.addEventListener('contextmenu', ev => ev.preventDefault());   // long-press / right-click: no menu over the game
 canvas.addEventListener('pointerdown', ev => {
-  if (state !== 'run') return;
-  const rect = canvas.getBoundingClientRect();
-  move((ev.clientX - rect.left) / rect.width < 0.5 ? -1 : 1);
+  if (state !== 'run' || !G || press || (ev.pointerType === 'mouse' && ev.button !== 0)) return;
+  try { canvas.setPointerCapture(ev.pointerId); } catch {}
+  const [x, y] = ptrPos(ev), e = G.pan || G.work ? null : nearestWorkable(G, x, y, HIT_R);
+  press = { id:ev.pointerId, x0:x, y0:y, x, y, age:0, e, mode:e ? 'pending' : 'swim' };
+  if (e){ G.tx = null; G.vx = G.vy = 0; }         // pressing loot in reach: stop, so she's still in reach at HOLD_MS
+  else if (!G.pan) aimAt(G, x, y);
+});
+canvas.addEventListener('pointermove', ev => {
+  if (!press || ev.pointerId !== press.id) return;
+  [press.x, press.y] = ptrPos(ev);
+  if (press.mode === 'pending' && Math.hypot(press.x - press.x0, press.y - press.y0) > DRIFT) press.mode = 'swim';
+  if (press.frozen && Math.hypot(press.x - press.fx, press.y - press.fy) > DRIFT) press.frozen = false;
+  if (press.mode === 'work' && G && G.work && (G.work.e.kind === 'net' || G.work.e.kind === 'air') &&
+      Math.hypot(press.x - press.x0, press.y - press.y0) > 3 * DRIFT){ release(G, shelfOf(G)); press.mode = 'swim'; }   // dragged out of a cut or a gulp
+  if (press.mode === 'swim' && !press.frozen && G && !G.pan) aimAt(G, press.x, press.y);
+});
+const lift = ev => {
+  if (!press || ev.pointerId !== press.id) return;
+  const p = press; press = null;
+  if (!G || state !== 'run') return;
+  if (p.mode === 'pending' && !G.pan) aimAt(G, p.x0, p.y0);   // a tap: swim there
+  else if (p.mode === 'work') release(G, shelfOf(G));
+};
+canvas.addEventListener('pointerup', lift);
+const cancel = ev => {                             // the system took the touch: drop the hold without resolving it
+  if (press && ev.pointerId === press.id){ if (G && press.mode === 'work') G.work = null; press = null; }
+};
+for (const t of ['pointercancel', 'lostpointercapture']) canvas.addEventListener(t, cancel);
+const HELD = { ArrowLeft:'left', a:'left', A:'left', ArrowRight:'right', d:'right', D:'right', ArrowUp:'up', w:'up', W:'up', ArrowDown:'down', s:'down', S:'down' };
+const WORK_KEYS = new Set([' ', 'e', 'E']);
+window.addEventListener('keyup', ev => {
+  const h = HELD[ev.key];
+  if (h) keys.delete(h);
+  if (WORK_KEYS.has(ev.key) && workKey){ workKey = false; if (G && G.work && state === 'run') release(G, shelfOf(G)); }
 });
 window.addEventListener('keydown', ev => {
+  const k = ev.key, tag = (document.activeElement || {}).tagName, held = HELD[k];
+  if (state === 'run' && held){ ev.preventDefault(); keys.add(held); return; }
+  if (state === 'run' && WORK_KEYS.has(k)){        // hold the nearest item within reach
+    ev.preventDefault();
+    if (ev.repeat || !G || G.work || G.pan || G.shove) return;
+    const e = nearestWorkable(G, G.x, G.y, REACH);
+    if (e){ startWork(G, e); workKey = true; }
+    return;
+  }
   if (ev.repeat) return;
-  const k = ev.key, tag = (document.activeElement || {}).tagName;
   if (state === 'run'){
-    if (k === 'ArrowLeft' || k === 'a' || k === 'A'){ ev.preventDefault(); move(-1); }
-    else if (k === 'ArrowRight' || k === 'd' || k === 'D'){ ev.preventDefault(); move(1); }
-    else if (k === 'ArrowUp' || k === 'w' || k === 'W' || k === ' '){ ev.preventDefault(); surface(); }
-    else if (k === 'Escape' || k === 'p' || k === 'P') pause();
+    if (k === 'Escape' || k === 'p' || k === 'P') pause();
   } else if (state === 'pause'){
-    if (k === 'Escape' || k === 'p' || k === 'P' || k === ' ' || k === 'Enter') resume();
+    if (k === 'Escape' || k === 'p' || k === 'P' || k === ' ' || k === 'Enter'){ ev.preventDefault(); resume(); }
   } else if (state === 'howto'){
     if (k === 'Escape'){ ev.preventDefault(); closeHow(); }
   } else if (state === 'title'){
@@ -825,13 +1484,12 @@ window.addEventListener('keydown', ev => {
     if (k === 'Enter' && tag === 'INPUT') saveScore();
   }
 });
-document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
-window.addEventListener('blur', pause);
+document.addEventListener('visibilitychange', () => { clearInput(); if (document.hidden) pause(); });
+window.addEventListener('blur', () => { clearInput(); pause(); });
 
 $('startBtn').addEventListener('click', start);
 $('howBtn').addEventListener('click', openHow);
 $('howBack').addEventListener('click', closeHow);
-surfBtn.addEventListener('click', surface);
 $('resumeBtn').addEventListener('click', resume);
 $('abandonBtn').addEventListener('click', toHarbour);
 $('postBtn').addEventListener('click', saveScore);
@@ -843,7 +1501,7 @@ $('boardToggle').addEventListener('click', () => { boardMode = boardMode === 'fl
 let last = 0;
 function loop(ts){
   const dt = Math.min(0.05, last ? (ts - last) / 1000 : 0); last = ts;
-  if (state === 'run' && G && !G.over){ update(G, dt); updateHud(G); }
+  if (state === 'run' && G && !G.over){ update(G, dt); if (!G.over) updateHud(G); }
   render(state === 'title' || state === 'howto' ? null : G, ts);
   requestAnimationFrame(loop);
 }

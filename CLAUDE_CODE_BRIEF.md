@@ -63,7 +63,7 @@ Game ↔ API contract (already implemented on both sides):
 ## Don't
 
 - Don't change game feel (speeds, spawn rates, perks, fog, scoring) without asking — those numbers were tuned deliberately and Chris wants to playtest them first. Tuning requests will come from him.
-- Don't swap the fonts, the lane layout, or the one-tap control scheme.
+- Don't swap the fonts, the lane layout, or the one-tap control scheme. (Lanes and one-tap apply to Weatherlight Run. Crabber's Cove Dive deliberately uses its own controls — tap to swim, hold on loot to work it, hide in kelp — so it doesn't play like game one.)
 - Don't add a framework or a build step. One HTML file per game is the point.
 - Don't add anti-cheat. It's six friends; trust is the model. (If someone posts 50 million, Chris will know who.)
 
@@ -97,3 +97,5 @@ Chris's chosen second game. Concept locked at design level, not yet built:
 - Build it as `dive.html` in this repo. Link the two games from each other's title screens once both exist.
 
 Status: first playable build of `dive.html` is in, linked both ways with Weatherlight Run, and each game has a How to page. Tuning knobs for the dive (breath, descent/ascent speed, hit costs, loot values, depth bonus) sit together near the top of its script; they're a first pass and need a playtest.
+
+Update (Oct 2026): the first build played too much like Weatherlight, so Chris compared three alternatives and picked the stealth version, "Sneak and Harvest", which is now `dive.html`. Eight one-screen shelves of rock and kelp; sahuagin patrol with visible sight cones (`?` fills, `!` hunts); hold on oysters, chest locks, nets and air pockets to work them (timing rings); opened loot alerts patrols for the climb back; a quiet streak (×1–×4) rewards unseen looting. Breath is 90 s. Local scores use `ccd.v2`; the Worker contract is unchanged. All of its numbers are a first pass, untested at the table.
